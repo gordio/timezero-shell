@@ -1,0 +1,68 @@
+{
+	"build_systems":
+	[
+		{
+			"cmd":
+			[
+				"waf"
+			],
+			"name": "WAF"
+		}
+	],
+	"folders":
+	[
+		{
+			"name": "Documentation",
+			"path": "docs"
+		},
+		{
+			"file_exclude_patterns":
+			[
+				"*.o"
+			],
+			"name": "Sources",
+			"path": "src"
+		},
+		{
+			"file_exclude_patterns":
+			[
+				".lock*",
+				// "*sublime-*",
+				"timezero-shell",
+				"waf",
+				"*.svg"
+			],
+			"folder_exclude_patterns":
+			[
+				".waf-*",
+				"build",
+				"src",
+				"docs"
+			],
+			"name": "Other",
+			"path": "./"
+		}
+	],
+	"settings":
+	{
+		"sublimeclang_options":
+		[
+			"-I/usr/include/gtk-2.0",
+			"-I/usr/lib64/gtk-2.0/include",
+			"-I/usr/include/atk-1.0",
+			"-I/usr/include/cairo",
+			"-I/usr/include/gdk-pixbuf-2.0",
+			"-I/usr/include/pango-1.0",
+			"-I/usr/include/glib-2.0",
+			"-I/usr/lib64/glib-2.0/include",
+			"-I/usr/include/pixman-1",
+			"-I/usr/include/freetype2",
+			"-I/usr/include/libpng15",
+			"-I/usr/include/libdrm",
+			"-I/usr/include/webkit-1.0",
+			"-I/usr/include/json"
+		],
+		"tab_size": 4,
+		"translate_tabs_to_spaces": false
+	}
+}
