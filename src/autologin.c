@@ -9,12 +9,6 @@
 #include "main.h"
 #include "flash.h"
 
-#include "autologin.h"
-
-
-tzLogin al_list[MAX_AUTOLOGIN_ITEMS];
-GtkWidget *al_widget[MAX_AUTOLOGIN_ITEMS];
-
 GtkWidget *al_window, *al_add_window;
 GtkWidget *al_image_proff, *al_image_clan, *al_image_rank;
 GtkBox *al_hbox, *al_box, *al_buttons_box;
@@ -24,18 +18,23 @@ GtkWidget *al_remove_button, *al_edit_button;
 GtkEntry *login_entry, *pass_entry;
 GtkWidget *file_chooser;
 
+#include "autologin.h"
+
+static tzLogin al_list[MAX_AUTOLOGIN_ITEMS];
+static GtkWidget *al_widget[MAX_AUTOLOGIN_ITEMS];
+
 
 static void al_window_create();
 static void al_window_move();
-static void al_move_cb();
+static bool al_move_cb();
 
 static void al_list_clean();
 static void al_list_buttons_redraw();
 static void al_list_load();
 static void al_list_save();
 
-static void add_window_add_item();
-static void add_window_edit_item();
+static void al_add_item_window();
+static void al_edit_item_window();
 static void al_item_remove();
 static void al_item_activate();
 
@@ -61,14 +60,14 @@ al_window_create(void)
 	gtk_window_set_skip_pager_hint(GTK_WINDOW(al_window), true);
 
 	GdkGeometry window_hints;
-
-	window_hints.min_width = 160;
+	window_hints.min_width = 180;
 	window_hints.min_height = 50;
 	gtk_window_set_geometry_hints(GTK_WINDOW(al_window), NULL, &window_hints, GDK_HINT_MIN_SIZE);
 
 	// gtk_window_set_urgency_hint(al_window, false);
 	gtk_window_set_focus_on_map(GTK_WINDOW(al_window), true);
 	gtk_window_set_transient_for(GTK_WINDOW(al_window), GTK_WINDOW(window));
+	gtk_window_set_destroy_with_parent(GTK_WINDOW(al_window), true);
 	gtk_container_set_border_width(GTK_CONTAINER(al_window), 2);
 
 	al_box = GTK_BOX(gtk_vbox_new(false, 0));
@@ -92,7 +91,7 @@ al_window_create(void)
 	al_list_buttons_redraw();
 
 	g_signal_connect(G_OBJECT(window), "check-resize", G_CALLBACK(&al_move_cb), NULL);
-	g_signal_connect(G_OBJECT(window), "event", G_CALLBACK(&al_move_cb), NULL);
+	// g_signal_connect(G_OBJECT(window), "event", G_CALLBACK(&al_move_cb), NULL);
 
 	// check automatic logon with autologin
 	if (default_autologin) {
@@ -104,6 +103,7 @@ al_window_create(void)
 			if (strcmp(login, nick) == 0) {
 				ilog("Activate autologin item: %s", al_list[i].login);
 				al_item_activate(&al_list[i]);
+				al_window_hide();
 
 				free(login);
 				free(nick);
@@ -125,9 +125,9 @@ al_window_show(void)
 	}
 
 	if (al_window) {
+		al_list_buttons_redraw();
 		al_window_move();
 		gtk_widget_show_all(al_window);
-		al_window_move();
 	}
 }
 
@@ -182,7 +182,6 @@ al_list_update_by_player(tzPlayer *p)
 
 			al_list[i].profession = tmp_mem;
 
-			al_list_buttons_redraw();
 			al_list_save();
 
 			free(login);
@@ -190,6 +189,7 @@ al_list_update_by_player(tzPlayer *p)
 
 			return true;
 		}
+
 		free(login);
 		free(nick);
 	}
@@ -198,7 +198,7 @@ al_list_update_by_player(tzPlayer *p)
 }
 
 static void
-al_item_window(tzLogin *l)
+al_item_window_create(tzLogin *l)
 {
 	vlog("Create autologin window - add/edit item");
 
@@ -278,10 +278,10 @@ al_item_window(tzLogin *l)
 	w = gtk_button_new_from_stock(GTK_STOCK_OK);
 	if (l && l->login) {
 		// update item
-		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(&add_window_edit_item), l);
+		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(&al_edit_item_window), l);
 	} else {
 		// add item
-		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(&add_window_add_item), NULL);
+		g_signal_connect(G_OBJECT(w), "clicked", G_CALLBACK(&al_add_item_window), NULL);
 	}
 	gtk_box_pack_end(GTK_BOX(hbbox), w, false, false, 50);
 
@@ -294,7 +294,7 @@ al_item_window(tzLogin *l)
 }
 
 static void
-add_window_add_item(GtkButton *b, gpointer user_data)
+al_add_item_window(GtkButton *b, gpointer user_data)
 {
 	vlog("Add autologin item.");
 
@@ -355,12 +355,11 @@ add_window_add_item(GtkButton *b, gpointer user_data)
 
 	gtk_widget_destroy(al_add_window);
 
-	al_list_buttons_redraw();
 	return;
 }
 
 static void
-add_window_edit_item(GtkButton *b, tzLogin *login_item)
+al_edit_item_window(GtkButton *b, tzLogin *login_item)
 {
 	vlog("Edit autologin item '%s'", login_item->login);
 
@@ -409,7 +408,7 @@ add_window_edit_item(GtkButton *b, tzLogin *login_item)
 static void
 al_item_add_cb(GtkButton *b, gpointer user_data)
 {
-	al_item_window(NULL);
+	al_item_window_create(NULL);
 }
 
 static void
@@ -503,8 +502,9 @@ al_list_buttons_redraw(void)
 			// Find "empty button widget"
 			for (uint i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
 				if (!al_widget[i]) {
+					vlog("Find empty widget for [%i] button", i);
 					al_widget[i] = button;
-					vlog("Can't find empty button");
+
 					break;
 				}
 			}
@@ -512,7 +512,7 @@ al_list_buttons_redraw(void)
 			gtk_button_set_relief(GTK_BUTTON(button), GTK_RELIEF_NONE);
 			gtk_button_set_focus_on_click(GTK_BUTTON(button), false);
 
-			gtk_container_add(GTK_CONTAINER(button), GTK_WIDGET(al_list_widget_create(&al_list[i])));
+			gtk_container_add(GTK_CONTAINER(button), al_list_widget_create(&al_list[i]));
 
 			g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(&al_item_activate_cb), &al_list[i]);
 
@@ -521,7 +521,6 @@ al_list_buttons_redraw(void)
 	}
 
 	gtk_widget_show_all(GTK_WIDGET(al_box));
-	al_window_move();
 }
 
 static void
@@ -536,6 +535,7 @@ al_list_load(void)
 	if (!g_file_test(AL_FILE_NAME, G_FILE_TEST_EXISTS)) {
 		ilog(_("Create autologins file."));
 		al_list_save();
+
 		return;
 	}
 
@@ -665,6 +665,17 @@ al_window_move(void)
 	gtk_window_move(GTK_WINDOW(al_window), x, y);
 }
 
+static bool
+al_move_cb(void)
+{
+	if (gtk_widget_get_visible(al_window)) {
+		al_window_move();
+	}
+
+	// false — move event to next function
+	return false;
+}
+
 static void
 al_item_activate_cb(GtkWidget *w, tzLogin *login_item)
 {
@@ -672,7 +683,7 @@ al_item_activate_cb(GtkWidget *w, tzLogin *login_item)
 
 	// EDIT
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(al_edit_button))) {
-		al_item_window(login_item);
+		al_item_window_create(login_item);
 		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(al_edit_button), false);
 
 		return;
@@ -697,12 +708,6 @@ static void
 window_add_item_close_cb(GtkWidget *w)
 {
 	gtk_widget_destroy(al_add_window);
-}
-
-static void
-al_move_cb(void)
-{
-	al_window_move();
 }
 
 static void
