@@ -24,8 +24,8 @@ tag_time_cb(GtkTextTag *tag, GObject *o, GdkEvent *e, GtkTextIter *i, gpointer u
 
 			i_end = gtk_text_iter_copy(i);
 			gtk_text_iter_forward_line(i_end);
-			// if this line have \n on finish
-			if (gtk_text_iter_get_char(i_end) == 49) {
+			// remove ended char if this no last line
+			if (gtk_text_iter_get_char(i_end) != 0) {
 				gtk_text_iter_backward_char(i_end);
 			}
 
