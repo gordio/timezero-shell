@@ -406,48 +406,54 @@ get_rank_num_from_ranks(int rank_count)
 GtkWidget *
 chat_msg_view_new(void)
 {
-	GtkTextView *msgView;
-	GtkTextBuffer *msgViewBuffer;
+	GtkTextView *view;
+	GtkTextBuffer *viewBuffer;
 	GtkTextTag *tag;
+	GSList *tags = NULL;
 
-	msgView = GTK_TEXT_VIEW(gtk_text_view_new());
-	gtk_text_view_set_wrap_mode(msgView, GTK_WRAP_WORD_CHAR);
-	gtk_text_view_set_editable(msgView, false);
-	gtk_text_view_set_overwrite(msgView, false);
-	gtk_text_view_set_cursor_visible(msgView, false);
-	gtk_text_view_set_pixels_above_lines(msgView, 0);
-	gtk_text_view_set_pixels_below_lines(msgView, 0);
-	gtk_text_view_set_pixels_inside_wrap(msgView, -2);
-	gtk_text_view_set_left_margin(msgView, 0);
-	gtk_text_view_set_indent(msgView, -160);
+	view = GTK_TEXT_VIEW(gtk_text_view_new());
+	gtk_text_view_set_wrap_mode(view, GTK_WRAP_WORD_CHAR);
+	gtk_text_view_set_editable(view, false);
+	gtk_text_view_set_overwrite(view, false);
+	gtk_text_view_set_cursor_visible(view, false);
+	gtk_text_view_set_pixels_above_lines(view, 0);
+	gtk_text_view_set_pixels_below_lines(view, 0);
+	gtk_text_view_set_pixels_inside_wrap(view, -2);
+	gtk_text_view_set_left_margin(view, 0);
+	gtk_text_view_set_indent(view, -160);
 
 
-	msgViewBuffer = gtk_text_view_get_buffer(msgView);
+	viewBuffer = gtk_text_view_get_buffer(view);
 
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "monospace", "family", "monospace", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "system", "family", "italic", "foreground", CHAT_SYSTEM_COLOR, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "monospace", "family", "monospace", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "system", "family", "italic", "foreground", CHAT_SYSTEM_COLOR, NULL);
 
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "time", "family", "monospace", "foreground", CHAT_TIME_COLOR, NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "nickname", "family", "monospace", "foreground", CHAT_NICK_COLOR, "weight", "bold", NULL);
-	g_signal_connect(G_OBJECT(tag), "event", G_CALLBACK(&tag_nick_cb), msgView);
-	g_signal_connect(G_OBJECT(msgView), "motion-notify-event", G_CALLBACK(&chat_text_view_event_cb), tag);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "time", "family", "monospace", "foreground", CHAT_TIME_COLOR, NULL);
+	g_signal_connect(G_OBJECT(tag), "event", G_CALLBACK(&tag_time_cb), view);
+	tags = g_slist_append(tags, tag);
 
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c1", "foreground", "#D0D0D0", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c2", "foreground", "#ACC8E6", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c3", "foreground", "#CCA3C8", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c4", "foreground", "#B0B3AC", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c5", "foreground", "#BBCC99", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c6", "foreground", "#F29191", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c7", "foreground", "#ACC8E6", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c8", "foreground", "#F2ECB6", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c9", "foreground", "#E6CFE3", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c10", "foreground", "#ADC2D9", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c11", "foreground", "#F2DAB6", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c12", "foreground", "#F29D9D", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c13", "foreground", "#DEF2B6", NULL);
-	tag = gtk_text_buffer_create_tag(msgViewBuffer, "c14", "foreground", "#F2D19D", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "nickname", "family", "monospace", "foreground", CHAT_NICK_COLOR, "weight", "bold", NULL);
+	g_signal_connect(G_OBJECT(tag), "event", G_CALLBACK(&tag_nick_cb), view);
+	tags = g_slist_append(tags, tag);
 
-	return GTK_WIDGET(msgView);
+	g_signal_connect(G_OBJECT(view), "motion-notify-event", G_CALLBACK(&chat_text_view_event_cb), tags);
+
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c1", "foreground", "#D0D0D0", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c2", "foreground", "#ACC8E6", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c3", "foreground", "#CCA3C8", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c4", "foreground", "#B0B3AC", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c5", "foreground", "#BBCC99", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c6", "foreground", "#F29191", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c7", "foreground", "#ACC8E6", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c8", "foreground", "#F2ECB6", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c9", "foreground", "#E6CFE3", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c10", "foreground", "#ADC2D9", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c11", "foreground", "#F2DAB6", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c12", "foreground", "#F29D9D", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c13", "foreground", "#DEF2B6", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c14", "foreground", "#F2D19D", NULL);
+
+	return GTK_WIDGET(view);
 }
 
 /* reverse: переворачиваем строку s на месте */

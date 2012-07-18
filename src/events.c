@@ -9,12 +9,6 @@
 
 static GdkCursor *cur_hand = NULL;
 
-void print_resize(GtkContainer *container, gpointer user_data)
-{
-	// FIXME: Много раз ресайзится. Лучше делать один раз при окончании
-	tzFlashResize();
-}
-
 // Hapend if click on TIME in messages frame
 bool
 tag_time_cb(GtkTextTag *tag, GObject *o, GdkEvent *e, GtkTextIter *i, gpointer user_data)
@@ -29,9 +23,12 @@ tag_time_cb(GtkTextTag *tag, GObject *o, GdkEvent *e, GtkTextIter *i, gpointer u
 			}
 
 			i_end = gtk_text_iter_copy(i);
-			gtk_text_iter_ends_line(i_end);
+			gtk_text_iter_forward_line(i_end);
+			// if this line have \n on finish
+			if (gtk_text_iter_get_char(i_end) == 49) {
+				gtk_text_iter_backward_char(i_end);
+			}
 
-			printf("%s\n", gtk_text_iter_get_text(i_start, i_end));
 			insert_to_entry(gtk_text_iter_get_text(i_start, i_end));
 
 			gtk_text_iter_free(i_start);
@@ -134,8 +131,22 @@ on_tag_event(GtkTextTag *tag, GObject *o, GdkEvent *e, const GtkTextIter *i, gpo
 	return TRUE;
 }*/
 
+
+static int old_size = 0;
+void
+flash_resize_cb(GtkContainer *container, gpointer user_data)
+{
+	int cur_size = gtk_paned_get_position(GTK_PANED(main_panels));
+	if (cur_size != 0 && old_size != cur_size) {
+		old_size = cur_size;
+		vlog("Send signal to flash -> update_size");
+		tzFlashResize();
+	}
+}
+
+// use for change cursor pointer on links
 bool
-chat_text_view_event_cb(GtkWidget *w, GdkEventMotion *event, GtkTextTag *tag)
+chat_text_view_event_cb(GtkWidget *w, GdkEventMotion *event, GSList *tags)
 {
 	GtkTextWindowType type;
 	GtkTextIter iter;
@@ -144,13 +155,13 @@ chat_text_view_event_cb(GtkWidget *w, GdkEventMotion *event, GtkTextTag *tag)
 
 	type = gtk_text_view_get_window_type(GTK_TEXT_VIEW(w), event->window);
 	if (type != GTK_TEXT_WINDOW_TEXT) {
-		return FALSE;
+		return false;
 	}
 
 	/* Get where the pointer really is. */
 	win = gtk_text_view_get_window(GTK_TEXT_VIEW(w), type);
 	if (!win) {
-		return FALSE;
+		return false;
 	}
 
 	gdk_window_get_pointer(win, &x, &y, NULL);
@@ -160,7 +171,18 @@ chat_text_view_event_cb(GtkWidget *w, GdkEventMotion *event, GtkTextTag *tag)
 
 	gtk_text_view_get_iter_at_location(GTK_TEXT_VIEW(w), &iter, buf_x, buf_y);
 
-	if (gtk_text_iter_has_tag(&iter, tag)) {
+	GtkTextTag *tag;
+	bool this_tag = false;
+
+	for (uint i = 0; i < g_slist_length(tags); ++i) {
+		tag = g_slist_nth_data(tags, i);
+		if (gtk_text_iter_has_tag(&iter, GTK_TEXT_TAG(tag))) {
+			this_tag = true;
+			break;
+		}
+	}
+
+	if (this_tag) {
 		if (cur_hand == NULL) {
 			cur_hand = gdk_cursor_new(GDK_HAND2);
 		}
