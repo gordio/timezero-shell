@@ -4,15 +4,16 @@
 #include "config.h"
 
 
-struct CONF_t {
+struct _conf {
 	char *name;
 	char *value;
 };
 
-struct CONF_t CONF[] = {
-	{"fullscreen_flash_size", "200"},
-	{"windowed_flash_size", "200"},
-	{"auto_reconnect", "true"},
+struct _conf CONF[] = {
+	{"window-width", "MIN_WINDOW_WIDTH"},
+	{"window-height", "650"},
+	{"flash-fullscreen_size", "200"},
+	{"flash-windowed_size", "200"},
 };
 
 char *

@@ -3,7 +3,6 @@
 
 #include <gtk/gtk.h>
 
-extern GtkTextView *msgView;
 extern GtkWidget *chat_main_box;
 extern GtkWidget *chat_panel;
 extern GtkWidget *room_label_building;

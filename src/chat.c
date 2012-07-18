@@ -14,8 +14,6 @@
 #include "tz-interface.h"
 #include "chat/sort.h"
 
-static gulong messages_cs[1024]; // Chat messages "checksum" :D
-
 
 GtkWidget *btnScan, *btnSend, *btnSmiles, *btnCmd, *btnClear, *btn_config, *btnExit, *btnTranslit;
 GtkEntry *msgEntry;
@@ -27,6 +25,7 @@ GtkTextMark *msgViewMark;
 GtkWidget *room_box;
 GtkWidget *room_label_location, *room_label_building;
 
+
 static GtkWidget *cmdMenu;
 static char *last_cmd_str;
 static char *current_player_name;
@@ -34,9 +33,15 @@ bool chatOn = true, chatRefresh = true;
 
 static bool in_building = false;
 
+#include "chat.h"
+
 // FIXME: Use undefined list for players in rppm
 tzPlayer Room_player[MAX_ROOM_NICKS];
 GtkWidget *Room_widget[MAX_ROOM_NICKS];
+
+// Messages caches
+static ulong MCC[1024];
+static ulong MCS[512];
 
 
 bool send_text();
@@ -45,7 +50,6 @@ bool send_cmd();
 void chat_list_nick_parse_add();
 void setChatState();
 
-#include "chat.h"
 
 // CALLBACKS
 static bool activate_msgEntry_cb();
@@ -56,7 +60,7 @@ static bool clear_cb();
 void room_label_cb();
 
 
-struct roomList_t {
+struct _roomList {
 	GtkWidget *w;
 	tzPlayer *p;
 
@@ -581,8 +585,9 @@ insert_nick_to_entry(const char const *nick, int steel_private)
 bool
 parse_and_add_system_message(const char *str)
 {
-	gulong hash = 0;
+	ulong hash = 0;
 	int status_code = 0;
+	char status_code_str[9];
 	int hours = 99, minutes = 99;
 	char time[6];
 	char text[MAX_CHAT_MESSAGE*2+1]; // Пока с запасом
@@ -592,19 +597,33 @@ parse_and_add_system_message(const char *str)
 	GtkTextBuffer *msgViewBuffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(msgView_system));
 
 	// Parse
-	if (6 != sscanf(str, "Z,%lx:%d:%d\t%i\t%[^\n]", &hash, &hours, &minutes, &status_code, text)) {
+	if (5 != sscanf(str, "Z,%lx:%d:%d\t%i\t%[^\n]", &hash, &hours, &minutes, &status_code, text)) {
 		elog("Message parse error: %s\n", str);
 		return false;
 	}
 
+	// Check messages cache
+	for (uint i = 0; i < countof(MCS); i++) {
+		if (MCS[i] == hash) {
+			vlog("Message exist in cache. Don't add");
+			return false;
+		}
+	}
+
 	// fixme bug with "Z,000819ae:21:10\t11\t\tsinon_woolf"
 
-	// Understand status code
-	// FIXME: не на ифах же, нужно что то лучше.
-	if (status_code == 14) {
-		message = g_strconcat("Вас просканировал персонаж: ", text, NULL);
-	} else {
-		message = g_strconcat("Системка #", status_code, " and:", text, NULL);
+	switch (status_code) {
+		case 14:
+			message = g_strconcat("Вас просканировал персонаж: ", text, NULL);
+			break;
+
+		case 11:
+			message = g_strconcat("Персонаж ", text, " сейчас вне сети ", NULL);
+			break;
+
+		default:
+			sprintf(status_code_str, "%i", status_code);
+			message = g_strconcat("Системка #", status_code_str, " and:", text, NULL);
 	}
 
 	sprintf(time, "%.2i:%.2i", hours, minutes);
@@ -655,15 +674,16 @@ parse_and_add_message(const char *str)
 	}
 
 	// Check messages cache
-	for (uint i = 0; i < countof(messages_cs); i++) {
-		if (messages_cs[i] == position) {
+	for (uint i = 0; i < countof(MCC); i++) {
+		if (MCC[i] == position) {
 			vlog("Message exist in cache. Don't add");
+
 			return false;
 		}
 	}
 
 	if (current_player_name && strcmp(nick, current_player_name) == 0) {
-		vlog("This message from self.");
+		vlog("This message is my self.");
 		self_message = true;
 	}
 
@@ -671,7 +691,6 @@ parse_and_add_message(const char *str)
 	char *prvt_nick = g_strconcat("private [", current_player_name, "]", NULL);
 	char *to_nick = g_strconcat("to [", current_player_name, "]", NULL);
 
-	vlog("Find personal messages and play sound");
 	if (!self_message && strstr(str, prvt_nick)) {
 		system("aplay private.wav &>/dev/null &");
 	} else if (!self_message && strstr(str, to_nick)) {
@@ -682,7 +701,6 @@ parse_and_add_message(const char *str)
 	free(to_nick);
 
 
-	vlog("Start parsing message group");
 	if (strstr(str, "private [radio]") != NULL) {
 		rem_substr(message, "private [radio] ");
 		view = msgView_radio;
@@ -699,14 +717,14 @@ parse_and_add_message(const char *str)
 	}
 
 	// add hash to message cache
-	for (uint i = 0; i < countof(messages_cs); i++) {
-		if (messages_cs[i] == 0) {
-			if (i < countof(messages_cs)) {
-				messages_cs[i] = position;
-				messages_cs[i+1] = 0;
+	for (uint i = 0; i < countof(MCC); i++) {
+		if (MCC[i] == 0) {
+			if (i < countof(MCC)) {
+				MCC[i] = position;
+				MCC[i+1] = 0;
 			} else {
-				messages_cs[i] = position;
-				messages_cs[0] = 0;
+				MCC[i] = position;
+				MCC[0] = 0;
 			}
 			break;
 		}
@@ -1086,7 +1104,7 @@ press_cmd_cb(GtkWidget *w, GdkEvent *e)
 static bool
 clear_cb(GtkWidget *w)
 {
-	messages_cs[0] = 0;
+	MCC[0] = 0;
 
 	return false;
 }

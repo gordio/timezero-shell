@@ -100,6 +100,6 @@ typedef struct tzLogin_t {
 
 #define CHAT_TIME_COLOR "#A0A0A0"
 #define CHAT_NICK_COLOR "#EEEEEE"
-#define CHAT_SYSTEM_COLOR "#808080"
+#define CHAT_SYSTEM_COLOR "#8B6D48"
 
 #endif /* end guard: _GENERAL_H */
