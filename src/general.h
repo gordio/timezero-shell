@@ -57,20 +57,6 @@ enum {
 	CHAT_REFRESH_ON,
 };
 
-// TODO
-typedef struct tzTab_t {
-	GtkWidget *main_panels;
-
-	GtkWidget *flash_panel;
-	WebKitWebView *webView;
-
-	GtkWidget *chat_panel;
-} tzTab;
-// TODO
-typedef struct tzWindow_t {
-	GtkWidget window;
-	tzTab tab[30];
-} tzWindow;
 
 // Player
 typedef struct tzPlayer_t {
@@ -97,9 +83,22 @@ typedef struct tzLogin_t {
 	char *key_file_path;
 } tzLogin;
 
-
 #define CHAT_TIME_COLOR "#A0A0A0"
-#define CHAT_NICK_COLOR "#EEEEEE"
-#define CHAT_SYSTEM_COLOR "#8B6D48"
+#define CHAT_NICK_COLOR "#FFFFFF"
+#define CHAT_SYSTEM_COLOR "#AB8D68"
+#define CHAT_COLOR1 "#E0E0E0"
+#define CHAT_COLOR2 "#4D73FF"
+#define CHAT_COLOR3 "#E999FF"
+#define CHAT_COLOR4 "#B0B0B0"
+#define CHAT_COLOR5 "#A3FF8A"
+#define CHAT_COLOR6 "#FF8AA3"
+#define CHAT_COLOR7 "#0F43FF"
+#define CHAT_COLOR8 "#FFE68A"
+#define CHAT_COLOR9 "#AB8AFF"
+#define CHAT_COLOR10 "#8AFFE6"
+#define CHAT_COLOR11 "#FFCB0F"
+#define CHAT_COLOR12 "#FF577B"
+#define CHAT_COLOR13 "#7BFF57"
+#define CHAT_COLOR14 "#CAAFAF"
 
 #endif /* end guard: _GENERAL_H */

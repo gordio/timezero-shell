@@ -1,3 +1,10 @@
+/*
+ * TimeZero™ Shell - GTK Shell for online game www.TimeZero.ru
+ * Copyright (C) 2011-2012  Gordienko Oleg
+ * LICENCE: Creative Commons Attribution-NonCommercial-ShareAlike 2.0 (CC BY-NC-SA 2.0)
+ * http://creativecommons.org/licenses/by-nc-sa/2.0/
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
@@ -438,20 +445,20 @@ chat_msg_view_new(void)
 
 	g_signal_connect(G_OBJECT(view), "motion-notify-event", G_CALLBACK(&chat_text_view_event_cb), tags);
 
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c1", "foreground", "#D0D0D0", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c2", "foreground", "#ACC8E6", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c3", "foreground", "#CCA3C8", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c4", "foreground", "#B0B3AC", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c5", "foreground", "#BBCC99", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c6", "foreground", "#F29191", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c7", "foreground", "#ACC8E6", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c8", "foreground", "#F2ECB6", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c9", "foreground", "#E6CFE3", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c10", "foreground", "#ADC2D9", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c11", "foreground", "#F2DAB6", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c12", "foreground", "#F29D9D", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c13", "foreground", "#DEF2B6", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c14", "foreground", "#F2D19D", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c1", "foreground", CHAT_COLOR1, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c2", "foreground", CHAT_COLOR2, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c3", "foreground", CHAT_COLOR3, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c4", "foreground", CHAT_COLOR4, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c5", "foreground", CHAT_COLOR5, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c6", "foreground", CHAT_COLOR6, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c7", "foreground", CHAT_COLOR7, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c8", "foreground", CHAT_COLOR8, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c9", "foreground", CHAT_COLOR9, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c10", "foreground", CHAT_COLOR10, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c11", "foreground", CHAT_COLOR11, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c12", "foreground", CHAT_COLOR12, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c13", "foreground", CHAT_COLOR13, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c14", "foreground", CHAT_COLOR14, NULL);
 
 	return GTK_WIDGET(view);
 }
