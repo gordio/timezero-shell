@@ -1,0 +1,90 @@
+!! Night Sun by Gordi.O, www.gordio.pp.ua
+
+!! Window active
+window.label.text.justify:center
+window.active.title.bg:Raised Gradient Vertical
+window.active.title.bg.color:#454545
+window.active.title.bg.colorTo:#3E3933
+window.active.title.separator.color:#3C3C3C
+window.active.label.bg:Parentrelative
+window.active.label.text.color:#ccc
+
+window.active.handle.bg:Raised Gradient Vertical
+window.active.handle.bg.color:#2a2a2a
+window.active.handle.bg.colorTo:#ff2222
+
+window.active.grip.bg:Raised Gradient Vertical
+window.active.grip.bg.color:#2a2a2a
+window.active.grip.bg.colorTo:#222
+
+window.active.button.*.bg:Parentrelative
+window.active.button.unpressed.image.color:#aaa
+window.active.button.pressed.image.color:#fff
+window.active.button.disabled.image.color:#2a2a2a
+window.active.button.toggled.image.color:#b9b7a7
+
+!! Window inactive
+window.inactive.title.bg:Raised Gradient Vertical
+window.inactive.title.bg.color:#3A3A3A
+window.inactive.title.bg.colorTo:#3E3933
+window.inactive.title.separator.color:#3C3C3C
+window.inactive.label.bg:Parentrelative
+window.inactive.label.text.color:#888
+
+window.inactive.handle.bg:Raised Gradient Vertical
+window.inactive.handle.bg.color:#2a2a2a
+window.inactive.handle.bg.colorTo:#222
+
+window.inactive.grip.bg:Raised Gradient Vertical
+window.inactive.grip.bg.color:#2a2a2a
+window.inactive.grip.bg.colorTo:#222
+
+window.inactive.button.*.bg:Parentrelative
+window.inactive.button.unpressed.image.color:#666
+window.inactive.button.pressed.image.color:#eee
+window.inactive.button.disabled.image.color:#333
+window.inactive.button.toggled.image.color:#556
+
+!! Menu
+menu.title.bg:Raised Gradient Vertical
+menu.title.bg.color:#272727
+menu.title.bg.colorTo:#222
+menu.title.text.color:#ccc
+menu.title.text.justify:center
+
+menu.items.justify:left
+menu.items.bg:Flat Solid
+menu.items.bg.color:#2C2C2C
+menu.items.text.color:#ccc
+menu.items.disabled.text.color:#555
+menu.items.active.disabled.text.color:#777
+
+menu.items.active.bg:flat
+menu.items.active.bg.border.color:#222
+menu.items.active.bg.color:#996B5C
+menu.items.active.text.color:#000
+menu.items.active.disabled.text.color:#555
+
+!! Other
+window.active.client.color:#505050
+window.inactive.client.color:#4A4A4A
+window.active.border.color:#000
+!window.active.border.color:#888 ! For goot see active tile (pytyle)
+window.inactive.border.color:#000
+border.width:1
+padding.width:1
+window.handle.width:0
+window.client.padding.width:1
+window.client.padding.height:0
+menu.border.width:1
+menu.items.border.width:0
+border.color:#000
+menu.overlap:0
+
+window.active.label.text.font:shadow=y:shadowtint=95:shadowoffset=1:weight=2
+window.inactive.label.text.font:shadow=y:shadowtint=55:shadowoffset=-1:weight=2
+menu.items.font:shadow=n
+menu.title.text.font:shadow=y:shadowtint=90:shadowoffset=-1
+*.bg.highlight:90
+*.bg.shadow:0
+! vim:ft=xdefaults:
