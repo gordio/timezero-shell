@@ -394,20 +394,17 @@ rem_substr(char *str, char *substr)
 
 /* Find rank index */
 int
-get_rank_num_from_ranks(int rank_count)
+get_rank_num_from_ranks(const int rank_count)
 {
 	int rank[] = {20, 60, 120, 250, 600, 1100, 1800, 2500, 3200, 4000, 5000, 6000, 7200, 10000, 15000};
 
-	for (uint i = 0; i <= countof(rank); i++) {
+	for (uint i = 0; i < countof(rank); i++) {
 		if (rank_count < rank[i]) {
-			if (i > 14) {
-				i = 14; // fixme
-			}
 			return i + 1;
 		}
 	}
 
-	return 0;
+	return countof(rank) + 1;
 }
 
 GtkWidget *
