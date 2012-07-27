@@ -210,6 +210,8 @@ keypress_cb(GtkWidget *w, GdkEventKey *e, gpointer user_data)
 		case GDK_F5:
 			tab_refresh();
 			return true;
+		case GDK_F12:
+			return true;
 		default:
 			return false;
 	}
