@@ -13,16 +13,15 @@
 #include "events.h"
 #include "utils.h"
 
-WebKitWebView *webView;			// Фрейм с флешем
-// static WebKitWebView *create_gtk_window_around_cb();
-WebKitNavigationResponse open_url();
-static bool script_alert_cb();
+WebKitWebView *webView;
 
 bool tz_fullscreen = false;
-bool flash_init = false;
 extern GtkWidget *flash_panel;
 
 GtkWidget *chat_panel = NULL;
+
+WebKitNavigationResponse open_url();
+static bool script_alert_cb();
 
 
 static void
@@ -103,6 +102,7 @@ pluginspage=\"http://www.macromedia.com/go/getflashplayer\">\
 WebKitNavigationResponse
 open_url(WebKitWebView *webView, WebKitWebFrame *frame, WebKitNetworkRequest *request)
 {
+	int ret;
 	const char *uri = webkit_network_request_get_uri(request);
 
 	if (strstr(uri, "battle") != NULL) {
@@ -111,10 +111,18 @@ open_url(WebKitWebView *webView, WebKitWebFrame *frame, WebKitNetworkRequest *re
 		return WEBKIT_NAVIGATION_RESPONSE_IGNORE;
 	}
 
+	// FIXME: Escape url
+	// FIXME: Use terminal with fork
 	char *cmd = malloc(1024);
 
-	sprintf(cmd, "chrome %s", uri);
-	printf("%s\n", cmd);
+	sprintf(cmd, "xdg-open \"%s\" &", uri);
+
+	vlog("EXEC: %s", cmd);
+	ret = system(cmd);
+
+	if (ret == -1)
+		elog("Execute problem for command '%s'", cmd);
+
 	free(cmd);
 	return WEBKIT_NAVIGATION_RESPONSE_IGNORE;
 }
@@ -140,12 +148,15 @@ script_alert_cb(WebKitWebView *webView, WebKitWebFrame *frame, char *data, gpoin
 		parse_and_add_system_message(data);
 	} else if (g_str_has_prefix(data, "fullscreen,1")) {
 		tz_fullscreen = true;
+
 		if (chat_panel) {
 			gtk_widget_hide(chat_main_box);
 		}
+
 		al_window_show();
 	} else if (g_str_has_prefix(data, "fullscreen,0")) {
 		tz_fullscreen = false;
+
 		if (chat_panel) {
 			gtk_widget_show_all(chat_panel);
 		} else {
@@ -154,6 +165,7 @@ script_alert_cb(WebKitWebView *webView, WebKitWebFrame *frame, char *data, gpoin
 			gtk_widget_show_all(chat_panel);
 			gtk_widget_hide(room_label_building); // fixme: this bad
 		}
+
 		al_window_hide();
 	} else if (g_str_has_prefix(data, "cmd,")) {
 		recreate_cmd_popup_menu(data);
@@ -169,7 +181,7 @@ script_alert_cb(WebKitWebView *webView, WebKitWebFrame *frame, char *data, gpoin
 	} else if (g_str_has_prefix(data, "vip,")) {
 		vlog("VIP: %s", g_strdup(data + 4));
 	} else if (g_str_has_prefix(data, "Init,")) {
-		flash_init = true;
+		vlog("Flash init done.");
 	} else {
 		wlog("Unknown data: %s", data);
 	}

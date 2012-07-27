@@ -3,9 +3,10 @@
 
 #include <webkit/webkit.h>
 
-GtkWidget *create_flash_frame();
 extern WebKitWebView *webView;
 extern bool *tz_fullscreen;
+
+GtkWidget *create_flash_frame();
 
 void tz_info_open();
 void tz_battle_show();
@@ -15,4 +16,5 @@ void tzExec();
 void tzSetVar();
 
 void tz_log_out(void);
+
 #endif
