@@ -1,10 +1,3 @@
-/*
- * TimeZero™ Shell - GTK Shell for online game www.TimeZero.ru
- * Copyright (C) 2011-2012  Gordienko Oleg
- * LICENCE: Creative Commons Attribution-NonCommercial-ShareAlike 2.0 (CC BY-NC-SA 2.0)
- * http://creativecommons.org/licenses/by-nc-sa/2.0/
- */
-
 #include <stdlib.h>
 #include <string.h>
 #include <gtk/gtk.h>
@@ -13,6 +6,7 @@
 #include "events.h"
 
 #include "utils.h"
+
 
 /* IMAGE CACHING */
 struct imgCache_t {
@@ -25,6 +19,7 @@ struct imgCache_t {
 struct imgCache_t *img_cache_clan = NULL;
 struct imgCache_t *img_cache_profession = NULL;
 struct imgCache_t *img_cache_rank = NULL;
+
 
 static struct imgCache_t*
 image_in_cache(struct imgCache_t *list, char *img_path)

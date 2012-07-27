@@ -1,5 +1,5 @@
-#ifndef _GENERAL_H
-#define _GENERAL_H
+#ifndef __GENERAL_H
+#define __GENERAL_H
 
 #include <stdbool.h>
 #include <gtk/gtk.h>
@@ -101,4 +101,4 @@ typedef struct tzLogin_t {
 #define CHAT_COLOR13 "#7BFF57"
 #define CHAT_COLOR14 "#CAAFAF"
 
-#endif /* end guard: _GENERAL_H */
+#endif

@@ -3,6 +3,7 @@
 #include "../chat.h"
 #include "../flash.h"
 
+
 GtkWidget *
 create_chat_smiles_window(void)
 {
@@ -15,4 +16,3 @@ create_chat_smiles_window(void)
 
 	return window;
 }
-

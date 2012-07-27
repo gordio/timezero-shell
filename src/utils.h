@@ -1,12 +1,5 @@
-/*
- * TimeZero™ Shell - GTK Shell for online game www.TimeZero.ru
- * Copyright (C) 2011-2012  Gordienko Oleg
- * LICENCE: Creative Commons Attribution-NonCommercial-ShareAlike 2.0 (CC BY-NC-SA 2.0)
- * http://creativecommons.org/licenses/by-nc-sa/2.0/
- */
-
-#ifndef _UTILS_H
-#define _UTILS_H
+#ifndef __UTILS_H
+#define __UTILS_H
 
 #include <gtk/gtk.h>
 
@@ -24,4 +17,4 @@ void rem_substr();
 char *replace_substr_in_str();
 char *escape_str();
 
-#endif /* end guard: _UTILS_H */
+#endif

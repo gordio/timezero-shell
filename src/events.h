@@ -1,12 +1,6 @@
-/*
- * TimeZero™ Shell - GTK Shell for online game www.TimeZero.ru
- * Copyright (C) 2011-2012  Gordienko Oleg
- * LICENCE: Creative Commons Attribution-NonCommercial-ShareAlike 2.0 (CC BY-NC-SA 2.0)
- * http://creativecommons.org/licenses/by-nc-sa/2.0/
- */
+#ifndef __EVENTS_H
+#define __EVENTS_H
 
-#ifndef _EVENTS_H
-#define _EVENTS_H
 #include <gtk/gtk.h>
 
 // window
@@ -29,4 +23,4 @@ void flash_resize_cb();
 void set_cursor_hand_cb(GtkWidget *w, GdkEvent *e, gpointer user_data);
 void unset_cursor_hand_cb(GtkWidget *w, GdkEvent *e, gpointer user_data);
 
-#endif /* end guard: _EVENTS_H */
+#endif

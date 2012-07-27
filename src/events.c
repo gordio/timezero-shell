@@ -1,10 +1,3 @@
-/*
- * TimeZero™ Shell - GTK Shell for online game www.TimeZero.ru
- * Copyright (C) 2011-2012  Gordienko Oleg
- * LICENCE: Creative Commons Attribution-NonCommercial-ShareAlike 2.0 (CC BY-NC-SA 2.0)
- * http://creativecommons.org/licenses/by-nc-sa/2.0/
- */
-
 #include <gdk/gdkkeysyms.h>
 #include "general.h"
 #include "window.h"
@@ -15,6 +8,7 @@
 #include "events.h"
 
 static GdkCursor *cur_hand = NULL;
+
 
 // Hapend if click on TIME in messages frame
 bool

@@ -1,12 +1,5 @@
-/*
- * TimeZero™ Shell - GTK Shell for online game www.TimeZero.ru
- * Copyright (C) 2011-2012  Gordienko Oleg
- * LICENCE: Creative Commons Attribution-NonCommercial-ShareAlike 2.0 (CC BY-NC-SA 2.0)
- * http://creativecommons.org/licenses/by-nc-sa/2.0/
- */
-
-#ifndef _CHAT_H
-#define _CHAT_H
+#ifndef __CHAT_H
+#define __CHAT_H
 
 #include <gtk/gtk.h>
 

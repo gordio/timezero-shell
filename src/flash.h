@@ -1,13 +1,7 @@
-/*
- * TimeZero™ Shell - GTK Shell for online game www.TimeZero.ru
- * Copyright (C) 2011-2012  Gordienko Oleg
- * LICENCE: Creative Commons Attribution-NonCommercial-ShareAlike 2.0 (CC BY-NC-SA 2.0)
- * http://creativecommons.org/licenses/by-nc-sa/2.0/
- */
+#ifndef __FLASH_H
+#define __FLASH_H
 
-#ifndef _FLASH_H
-#  define _FLASH_H
-#  include <webkit/webkit.h>
+#include <webkit/webkit.h>
 
 GtkWidget *create_flash_frame();
 extern WebKitWebView *webView;
@@ -21,4 +15,4 @@ void tzExec();
 void tzSetVar();
 
 void tz_log_out(void);
-#endif							/* end guard: _FLASH_H */
+#endif

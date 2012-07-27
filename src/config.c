@@ -1,10 +1,3 @@
-/*
- * TimeZero™ Shell - GTK Shell for online game www.TimeZero.ru
- * Copyright (C) 2011-2012  Gordienko Oleg
- * LICENCE: Creative Commons Attribution-NonCommercial-ShareAlike 2.0 (CC BY-NC-SA 2.0)
- * http://creativecommons.org/licenses/by-nc-sa/2.0/
- */
-
 #include <glib.h>
 #include "general.h"
 
@@ -22,6 +15,7 @@ struct _conf CONF[] = {
 	{"flash-fullscreen_size", "200"},
 	{"flash-windowed_size", "200"},
 };
+
 
 char *
 conf_get(char *name) {

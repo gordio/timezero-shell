@@ -1,21 +1,12 @@
-/*
- * TimeZero™ Shell - GTK Shell for online game www.TimeZero.ru
- * Copyright (C) 2011-2012  Gordienko Oleg
- * LICENCE: Creative Commons Attribution-NonCommercial-ShareAlike 2.0 (CC BY-NC-SA 2.0)
- * http://creativecommons.org/licenses/by-nc-sa/2.0/
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <webkit/webkit.h>
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
-
 #include "general.h"
 #include "window.h"
 #include "flash.h"
@@ -30,10 +21,11 @@ char *default_autologin;
 char *tz_file_path = NULL;
 
 #include "main.h"
+
 static int initArgs();
 
-int
-main(int argc, char **argv, char *envp[])
+
+int main(int argc, char **argv, char *envp[])
 {
 #if ENABLE_NLS
 	bindtextdomain(PACKAGE, LOCALEDIR);

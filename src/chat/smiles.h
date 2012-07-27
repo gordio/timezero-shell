@@ -1,5 +1,5 @@
-#ifndef _SMILES_H
-#define _SMILES_H
+#ifndef __SMILES_H
+#define __SMILES_H
 
 
 
