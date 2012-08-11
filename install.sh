@@ -2,13 +2,13 @@
 
 TZ_DIR="~/.timezero"
 
-echo "Copy data files…"
-cp -r data/img $TZ_DIR
-cp data/private.wav $TZ_DIR
-cp data/to.wav $TZ_DIR
+echo "Copy resources files…"
+cp -r resources/img $TZ_DIR
+cp resources/private.wav $TZ_DIR
+cp resources/to.wav $TZ_DIR
 
 echo "Install theme"
-cp -r data/TimeZero ~/.themes/
+cp -r resources/TimeZero ~/.themes/
 
 
 # Приблизительный размер скачиваемый/устанавливаемый 130МБ
