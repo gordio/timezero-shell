@@ -31,7 +31,7 @@ def need(ctx, name, version=None, lib_store='', require=True):
 
 def configure(conf):
 	conf.load('compiler_c')
-	conf.load('gnu_dirs intltool')
+	#conf.load('gnu_dirs intltool')
 
 	conf.define('GETTEXT_PACKAGE', APPNAME)
 	conf.define('VERSION', VERSION)
