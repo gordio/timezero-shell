@@ -57,6 +57,12 @@ int main(int argc, char **argv, char *envp[])
 		return -2;
 	}
 
+	// load gtk theme
+	if (!no_theme) {
+		char *gtk_rc_fp = g_strconcat(tz_client_dir, G_DIR_SEPARATOR_S, "gtkrc", NULL);
+		gtk_rc_add_default_file(gtk_rc_fp);
+	}
+
 	gtk_init(&argc, &argv);
 
 	// create window and other

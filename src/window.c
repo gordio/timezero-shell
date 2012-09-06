@@ -20,13 +20,10 @@ create_main_window(void)
 {
 	vlog("Create general window");
 
+	// Init window
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window), "TimeZero Linux Client");
 	gtk_window_set_default_icon_name("timezero");
-
-	if (!no_theme) {
-		g_object_set(gtk_widget_get_settings(window), "gtk-theme-name", "TimeZero", NULL);
-	}
 
 	// Load window minimum sizes table
 	GdkGeometry window_hints;
