@@ -1,8 +1,4 @@
 *~
 *.o
 *.mo
-build
-.lock-waf*
-.waf-*
 timezero-shell
-*.sublime-workspace
