@@ -14,7 +14,7 @@
 #include "chat/sort.h"
 
 
-GtkWidget *btnScan, *btnSend, *btnSmiles, *btnCmd, *btnClear, *btn_config, *btnExit, *btnTranslit;
+GtkWidget *button_scan, *button_smiles, *button_cmd, *button_config, *button_exit, *button_translit;
 GtkEntry *msgEntry;
 GtkWidget *chat_main_box, *chat_text_box, *bottom_buttons, *room_list, *tab_bar;
 
@@ -39,8 +39,8 @@ tzPlayer Room_player[MAX_ROOM_NICKS];
 GtkWidget *Room_widget[MAX_ROOM_NICKS];
 
 // Messages caches
-static ulong MCC[1024];
-static ulong MCS[512];
+static unsigned long MCC[1024];
+static unsigned long MCS[512];
 
 
 bool send_text();
@@ -59,13 +59,59 @@ static bool clear_cb();
 void room_label_cb();
 
 
-struct _roomList {
-	GtkWidget *w;
-	tzPlayer *p;
+/* GTK Widgets {{{ */
+GtkWidget *
+chat_msg_view_new(void)
+{
+	GtkTextView *view;
+	GtkTextBuffer *viewBuffer;
+	GtkTextTag *tag;
+	GSList *tags = NULL;
 
-	struct roomList_t *next;
-};
+	view = GTK_TEXT_VIEW(gtk_text_view_new());
+	gtk_text_view_set_wrap_mode(view, GTK_WRAP_WORD_CHAR);
+	gtk_text_view_set_editable(view, false);
+	gtk_text_view_set_overwrite(view, false);
+	gtk_text_view_set_cursor_visible(view, false);
+	gtk_text_view_set_pixels_above_lines(view, 0);
+	gtk_text_view_set_pixels_below_lines(view, 0);
+	gtk_text_view_set_pixels_inside_wrap(view, -2);
+	gtk_text_view_set_left_margin(view, 0);
+	gtk_text_view_set_indent(view, -160);
 
+
+	viewBuffer = gtk_text_view_get_buffer(view);
+
+	tag = gtk_text_buffer_create_tag(viewBuffer, "monospace", "family", "monospace", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "system", "family", "italic", "foreground", CHAT_SYSTEM_COLOR, NULL);
+
+	tag = gtk_text_buffer_create_tag(viewBuffer, "time", "family", "monospace", "foreground", CHAT_TIME_COLOR, NULL);
+	g_signal_connect(G_OBJECT(tag), "event", G_CALLBACK(&tag_time_cb), view);
+	tags = g_slist_append(tags, tag);
+
+	tag = gtk_text_buffer_create_tag(viewBuffer, "nickname", "family", "monospace", "foreground", CHAT_NICK_COLOR, "weight", "bold", NULL);
+	g_signal_connect(G_OBJECT(tag), "event", G_CALLBACK(&tag_nick_cb), view);
+	tags = g_slist_append(tags, tag);
+
+	g_signal_connect(G_OBJECT(view), "motion-notify-event", G_CALLBACK(&chat_text_view_event_cb), tags);
+
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c1", "foreground", CHAT_COLOR1, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c2", "foreground", CHAT_COLOR2, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c3", "foreground", CHAT_COLOR3, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c4", "foreground", CHAT_COLOR4, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c5", "foreground", CHAT_COLOR5, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c6", "foreground", CHAT_COLOR6, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c7", "foreground", CHAT_COLOR7, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c8", "foreground", CHAT_COLOR8, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c9", "foreground", CHAT_COLOR9, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c10", "foreground", CHAT_COLOR10, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c11", "foreground", CHAT_COLOR11, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c12", "foreground", CHAT_COLOR12, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c13", "foreground", CHAT_COLOR13, NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "c14", "foreground", CHAT_COLOR14, NULL);
+
+	return GTK_WIDGET(view);
+}
 
 GtkWidget *
 create_room_list_widget(void)
@@ -75,7 +121,6 @@ create_room_list_widget(void)
 	GtkWidget *scroll;
 	GtkWidget *event_box;
 	GtkWidget *vbox_location_name;
-	GdkColor color_bg;
 
 	room_box = gtk_vbox_new(false, 1);
 	gtk_container_set_border_width(GTK_CONTAINER(room_box), 0);
@@ -111,7 +156,8 @@ create_room_list_widget(void)
 	gtk_widget_hide(room_label_building);
 
 	// configure EventBox for ROOM Labels
-	// fixme: find border color, and use
+	// FIXME: find border color, and use
+	GdkColor color_bg;
 	gdk_color_parse("#252320", &color_bg);
 #if GTK_CHECK_VERSION (3, 0, 0)
 	gtk_widget_override_background_color(room_label_location, GTK_STATE_NORMAL, &color_bg);
@@ -132,8 +178,8 @@ room_widget_redraw(void)
 	gtk_widget_hide(room_box);
 
 	// remove widgets
-	for (uint i = 0; i < countof(Room_widget); i++) {
-		if (Room_widget[i] != NULL) {
+	for (unsigned int i = 0; i < countof(Room_widget); i++) {
+		if (Room_widget[i]) {
 			gtk_widget_destroy(Room_widget[i]);
 			Room_widget[i] = NULL;
 		}
@@ -147,8 +193,8 @@ room_widget_redraw(void)
 
 	// create widget player box
 	for (int i = countof(Room_player)-1; i >= 0; --i) {
-		if (Room_player[i].nick != NULL) {
-			for (uint j = 0; j < countof(Room_widget); j++) {
+		if (Room_player[i].nick) {
+			for (unsigned int j = 0; j < countof(Room_widget); j++) {
 				if (Room_widget[j] == NULL) {
 					Room_widget[j] = list_nickbox_create(&Room_player[i]);
 					gtk_box_pack_start(GTK_BOX(room_box), Room_widget[j], false, false, 1);
@@ -168,12 +214,14 @@ room_widget_redraw(void)
 	return;
 }
 
+/*}}}*/
+
 static tzPlayer *
 get_player_or_exist(char *nick)
 {
 	// search exist player item
-	for (uint i = 0; i < countof(Room_player); ++i) {
-		if (Room_player[i].nick != NULL) {
+	for (unsigned int i = 0; i < countof(Room_player); ++i) {
+		if (Room_player[i].nick) {
 			if (strcmp(nick, Room_player[i].nick) == 0) {
 				return &Room_player[i];
 			}
@@ -181,7 +229,7 @@ get_player_or_exist(char *nick)
 	}
 
 	// search new empty player item
-	for (uint i = 0; i < countof(Room_player); i++) {
+	for (unsigned int i = 0; i < countof(Room_player); i++) {
 		if (Room_player[i].nick == NULL) {
 			return &Room_player[i];
 		}
@@ -213,34 +261,17 @@ tz_list_add(const char const *data, bool disable_refresh)
 	}
 
 	// allocate memory
-	if (p->nick == NULL) {
+	if (!p->nick) {
 		p->nick = malloc(1024);
 	}
-	if (p->clan == NULL) {
+	if (!p->clan) {
 		p->clan = malloc(1024);
 	}
 
-	if (8 == sscanf(data, "A,%llu/%d/%u//%[^/]/%d/%d/%d/%d",
-					&p->battleid,
-					&p->group,
-					&p->state,
-					p->nick,
-					&p->level,
-					&p->rank,
-					&p->minlevel,
-					&p->aggr)) {
+	if (8 == sscanf(data, "A,%llu/%d/%u//%[^/]/%d/%d/%d/%d", &p->battleid, &p->group, &p->state, p->nick, &p->level, &p->rank, &p->minlevel, &p->aggr)) {
 		free(p->clan);
 		p->clan = NULL;
-	} else if (9 == sscanf(data, "A,%llu/%d/%u/%[^/]/%[^/]/%d/%d/%d/%d",
-					&p->battleid,
-					&p->group,
-					&p->state,
-					p->clan,
-					p->nick,
-					&p->level,
-					&p->rank,
-					&p->minlevel,
-					&p->aggr)) {
+	} else if (9 == sscanf(data, "A,%llu/%d/%u/%[^/]/%[^/]/%d/%d/%d/%d", &p->battleid, &p->group, &p->state, p->clan, p->nick, &p->level, &p->rank, &p->minlevel, &p->aggr)) {
 	} else {
 		elog("\n!!!ERROR PARSE ADD:%s\n\n", data);
 		return;
@@ -263,13 +294,13 @@ tz_list_remove(const char const *data)
 	char *nick = g_strdup(data + 2);
 
 	// find and remove from players buf
-	for (uint i = 0; i < countof(Room_player); i++) {
-		if (Room_player[i].nick != NULL) {
+	for (unsigned int i = 0; i < countof(Room_player); i++) {
+		if (Room_player[i].nick) {
 			if (strcmp(nick, Room_player[i].nick) == 0) {
 				vlog("ok, find: %s and remove.", Room_player[i].nick);
 				free(Room_player[i].nick);
 				Room_player[i].nick = NULL;
-				if (Room_player[i].clan != NULL) {
+				if (Room_player[i].clan) {
 					free(Room_player[i].clan);
 					Room_player[i].clan = NULL;
 				}
@@ -283,11 +314,11 @@ tz_list_remove(const char const *data)
 static void
 clear_room_players_buffer()
 {
-	for (uint i = 0; i < countof(Room_player); i++) {
-		if (Room_player[i].nick != NULL) {
+	for (unsigned int i = 0; i < countof(Room_player); i++) {
+		if (Room_player[i].nick) {
 			free(Room_player[i].nick);
 			Room_player[i].nick = NULL;
-			if (Room_player[i].clan != NULL) {
+			if (Room_player[i].clan) {
 				free(Room_player[i].clan);
 				Room_player[i].clan = NULL;
 			}
@@ -328,7 +359,7 @@ tz_list_refresh(const char const *data)
 
 	pch = strtok(text, ",");
 
-	while (pch != '\0' && pch != NULL) {
+	while (pch && pch != '\0') {
 		cmd = g_strconcat("A,", pch, NULL);
 		tz_list_add(cmd, true);
 
@@ -434,38 +465,58 @@ create_chat_frame()
 	// BUTTONS PANEL
 	bottom_buttons = gtk_hbox_new(false, 2);	// Инициализируем панель
 
-	btnScan = image_button_new("img/button/chat/scan.png", "",
-							   _("Show scan alert msgView"), &press_scan_info_cb);
-	gtk_widget_set_sensitive(btnScan, false);
-	gtk_button_set_relief(GTK_BUTTON(btnScan), GTK_RELIEF_NONE);
-	gtk_box_pack_start(GTK_BOX(bottom_buttons), btnScan, false, true, 2);
+	button_scan = gtk_button_new();
+	gtk_button_add_image(GTK_BUTTON(button_scan), "img/button/chat/scan.png");
+	gtk_widget_set_sensitive(button_scan, false);
+	gtk_button_set_relief(GTK_BUTTON(button_scan), GTK_RELIEF_NONE);
+	g_signal_connect(G_OBJECT(button_scan), "clicked", G_CALLBACK(&press_scan_info_cb), NULL);
+	gtk_box_pack_start(GTK_BOX(bottom_buttons), button_scan, false, true, 2);
 
-	msgEntry = GTK_ENTRY(gtk_entry_new());	// строка ввода
+
+	msgEntry = GTK_ENTRY(gtk_entry_new());
 	gtk_entry_buffer_set_max_length(gtk_entry_get_buffer(msgEntry), MAX_CHAT_MESSAGE);
 	g_object_set(gtk_widget_get_settings(GTK_WIDGET(msgEntry)), "gtk-entry-select-on-focus", false, NULL);
 	gtk_box_pack_start(GTK_BOX(bottom_buttons), GTK_WIDGET(msgEntry), true, true, 2);
 	g_signal_connect(G_OBJECT(msgEntry), "activate", G_CALLBACK(&activate_msgEntry_cb), NULL);
 
 
+	button_smiles = gtk_button_new();
+	gtk_button_add_image(GTK_BUTTON(button_smiles), "img/button/chat/smiles.png");
+	gtk_widget_set_tooltip_text(button_smiles, _("Smiles"));
+	g_signal_connect(G_OBJECT(button_smiles), "clicked", G_CALLBACK(&press_smiles_cb), NULL);
+	gtk_box_pack_start(GTK_BOX(bottom_buttons), button_smiles, false, true, 2);
 
-	btnSmiles = image_button_new("img/button/chat/smiles.png", "", _("Smiles"), &press_smiles_cb);
-	gtk_box_pack_start(GTK_BOX(bottom_buttons), btnSmiles, false, true, 2);
 
-	btnCmd = image_button_new("img/button/chat/cmd.png", "", _("Cmd"), &press_cmd_cb);
-	gtk_box_pack_start(GTK_BOX(bottom_buttons), btnCmd, false, true, 2);
+	button_cmd = gtk_button_new();
+	gtk_button_add_image(GTK_BUTTON(button_cmd), "img/button/chat/cmd.png");
+	gtk_widget_set_tooltip_text(button_cmd, _("CMD"));
+	g_signal_connect(G_OBJECT(button_cmd), "clicked", G_CALLBACK(&press_cmd_cb), NULL);
+	gtk_box_pack_start(GTK_BOX(bottom_buttons), button_cmd, false, true, 2);
 
-	btnTranslit = image_toggle_button_new("img/button/chat/translit.png", "", _("Translit"), NULL);
-	gtk_box_pack_start(GTK_BOX(bottom_buttons), btnTranslit, false, true, 2);
+
+	button_translit = gtk_toggle_button_new();
+	gtk_button_add_image(GTK_BUTTON(button_translit), "img/button/chat/translit.png");
+	gtk_box_pack_start(GTK_BOX(bottom_buttons), button_translit, false, true, 2);
+
 
 	vseparator = gtk_vseparator_new();
 	gtk_box_pack_start(GTK_BOX(bottom_buttons), vseparator, false, true, 0);
 
-	btn_config = image_button_new("img/button/chat/filter.png", _("Preferences "),
-								  _("Open preferences window"), NULL);
-	gtk_box_pack_start(GTK_BOX(bottom_buttons), btn_config, false, true, 2);
 
-	btnExit = image_button_new("img/button/chat/exit.png", _("Exit "), _("Exit game"), &tzLogout);
-	gtk_box_pack_start(GTK_BOX(bottom_buttons), btnExit, false, true, 2);
+	button_config = gtk_button_new();
+	gtk_button_add_image(GTK_BUTTON(button_config), "img/button/chat/filter.png");
+	gtk_button_set_label(GTK_BUTTON(button_config), _("Preferences"));
+	gtk_widget_set_tooltip_text(button_config, _("Open preferences window"));
+	gtk_box_pack_start(GTK_BOX(bottom_buttons), button_config, false, true, 2);
+
+
+	button_exit = gtk_button_new();
+	gtk_button_add_image(GTK_BUTTON(button_exit), "img/button/chat/exit.png");
+	gtk_button_set_label(GTK_BUTTON(button_exit), _("Exit"));
+	gtk_widget_set_tooltip_text(button_exit, _("Exit game"));
+	g_signal_connect(G_OBJECT(button_exit), "clicked", G_CALLBACK(&tzLogout), NULL);
+	gtk_box_pack_start(GTK_BOX(bottom_buttons), button_exit, false, true, 2);
+
 
 	gtk_box_pack_start(GTK_BOX(chat_main_box), bottom_buttons, false, true, 2);
 
@@ -494,7 +545,7 @@ send_text(const char *text)
 {
 	// TODO Create translit function
 	//char *msg;
-	//if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(btnTranslit)) == 1) {
+	//if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_translit)) == 1) {
 		//msg = str_translit(strdup(text));
 	//} else {
 		//msg = strdup(text);
@@ -545,14 +596,14 @@ insert_nick_to_entry(const char const *nick, int steel_private)
 
 	if (strstr(text, to_nick)) {
 		// ok exist _to_
-		tmp = replace_substr_in_str(text, to_nick, private_nick);
+		tmp = rep_substr(text, to_nick, private_nick);
 		free(text);
 		text = tmp;
 	} else if (strstr(text, private_nick)) {
 		// ok exist _private_
 		if (!steel_private) {
 			// change to _to_
-			tmp = replace_substr_in_str(text, private_nick, to_nick);
+			tmp = rep_substr(text, private_nick, to_nick);
 			free(text);
 			text = tmp;
 		}
@@ -584,7 +635,7 @@ insert_nick_to_entry(const char const *nick, int steel_private)
 bool
 parse_and_add_system_message(const char *str)
 {
-	ulong hash = 0;
+	unsigned long hash = 0;
 	int status_code = 0;
 	char status_code_str[9];
 	int hours = 99, minutes = 99;
@@ -602,7 +653,7 @@ parse_and_add_system_message(const char *str)
 	}
 
 	// Check messages cache
-	for (uint i = 0; i < countof(MCS); i++) {
+	for (unsigned int i = 0; i < countof(MCS); i++) {
 		if (MCS[i] == hash) {
 			vlog("Message exist in cache. Don't add");
 			return false;
@@ -656,9 +707,9 @@ parse_and_add_message(const char *str)
 	GtkTextBuffer *msgViewBuffer;
 
 	char time[6];
-	char nick[MAX_NICK_SIZE*2+1];	// *2 for utf8 and +1 for '\0'
-	char text[MAX_CHAT_MESSAGE*2+1];	// FIXME: Overflow (сообщения приходящие не ограниченны?)
-	char message[MAX_CHAT_MESSAGE*2+1];	// Add *5 for monkey fix problem
+	char nick[MAX_NICK_SIZE*2+1];       // *2 for utf8 and +1 for '\0'
+	char text[MAX_CHAT_MESSAGE*2+1];    // FIXME: Overflow (сообщения приходящие не ограниченны?)
+	char message[MAX_CHAT_MESSAGE*2+1]; // Add *5 for monkey fix problem
 
 	bool self_message = false;
 
@@ -673,7 +724,7 @@ parse_and_add_message(const char *str)
 	}
 
 	// Check messages cache
-	for (uint i = 0; i < countof(MCC); i++) {
+	for (unsigned int i = 0; i < countof(MCC); i++) {
 		if (MCC[i] == position) {
 			vlog("Message exist in cache. Don't add");
 
@@ -700,23 +751,23 @@ parse_and_add_message(const char *str)
 	free(to_nick);
 
 
-	if (strstr(str, "private [radio]") != NULL) {
+	if (strstr(str, "private [radio]")) {
 		rem_substr(message, "private [radio] ");
 		view = msgView_radio;
-	} else if (strstr(str, "private [clan]") != NULL) {
+	} else if (strstr(str, "private [clan]")) {
 		rem_substr(message, "private [clan] ");
 		view = msgView_clan;
-	} else if (strstr(str, "private [alliance]") != NULL) {
+	} else if (strstr(str, "private [alliance]")) {
 		rem_substr(message, "private [alliance] ");
 		view = msgView_alliance;
-	} else if (strstr(str, "private [") != NULL) {
+	} else if (strstr(str, "private [")) {
 		view = msgView_private;
 	} else {
 		view = msgView_system;
 	}
 
 	// add hash to message cache
-	for (uint i = 0; i < countof(MCC); i++) {
+	for (unsigned int i = 0; i < countof(MCC); i++) {
 		if (MCC[i] == 0) {
 			if (i < countof(MCC)) {
 				MCC[i] = position;
@@ -770,7 +821,7 @@ parse_and_add_message(const char *str)
 	gtk_text_buffer_insert_with_tags_by_name(msgViewBuffer, &iter, message, -1, tmp_color, NULL);
 
 	msgViewMark = gtk_text_buffer_create_mark(msgViewBuffer, NULL, &iter, false);
-	if (msgViewMark != NULL) {
+	if (msgViewMark) {
 		gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(view), msgViewMark);
 		gtk_text_buffer_delete_mark(msgViewBuffer, msgViewMark);
 	}
@@ -790,26 +841,24 @@ setChatState(int state)
 
 	if (state == CHAT_FULL_OFF) {
 		gtk_widget_set_sensitive(GTK_WIDGET(msgEntry), false);
-		gtk_widget_set_sensitive(btnCmd, false);
-		gtk_widget_set_sensitive(btnClear, false);
-		gtk_widget_set_sensitive(btnSmiles, false);
-		gtk_widget_set_sensitive(btnTranslit, false);
+		gtk_widget_set_sensitive(button_cmd, false);
+		gtk_widget_set_sensitive(button_smiles, false);
+		gtk_widget_set_sensitive(button_translit, false);
 	}
 	if (state == CHAT_ON) {
 		chatOn = true;
-		gtk_widget_set_sensitive(btnSmiles, true);
+		gtk_widget_set_sensitive(button_smiles, true);
 		// FIXME: Don't implemented translit
-		//gtk_widget_set_sensitive(btnTranslit), true);
-			gtk_widget_set_sensitive(GTK_WIDGET(msgEntry), true);
-			gtk_widget_set_sensitive(btnCmd, true);
-			gtk_widget_set_sensitive(btnClear, true);
+		//gtk_widget_set_sensitive(button_translit), true);
+		gtk_widget_set_sensitive(GTK_WIDGET(msgEntry), true);
+		gtk_widget_set_sensitive(button_cmd, true);
 		if (!chatRefresh) {
 			send_raw("//refreshoff");
 		}
 	} else if (state == CHAT_OFF) {
 		chatOn = false;
-		gtk_widget_set_sensitive(btnSmiles, false);
-		//gtk_widget_set_sensitive(btnTranslit), false);
+		gtk_widget_set_sensitive(button_smiles, false);
+		//gtk_widget_set_sensitive(button_translit), false);
 		clear_room_players_buffer();
 	} else if (state == CHAT_REFRESH_OFF) {
 		send_raw("//refreshoff");
@@ -828,7 +877,7 @@ recreate_cmd_popup_menu(const char *cmd_str)
 {
 	// FIXME: Уже и не помню. Что за бред?
 	if (cmd_str == NULL) {
-		if (last_cmd_str != NULL) {
+		if (last_cmd_str) {
 			cmd_str = last_cmd_str;
 		} else {
 			return;
@@ -836,20 +885,14 @@ recreate_cmd_popup_menu(const char *cmd_str)
 	}
 
 	if (last_cmd_str != cmd_str) {
-		if (last_cmd_str != NULL) {
+		if (last_cmd_str) {
 			free(last_cmd_str);
 		}
 		last_cmd_str = strdup(cmd_str);
 	}
 
 	GtkWidget *menu_item;
-	//char menu_item_buf[128];
 
-	//if (cmdMenu != NULL) {
-		//gtk_widget_unref(cmdMenu);
-		//gtk_menu_detach(GTK_MENU(cmdMenu));
-		//cmdMenu = NULL;
-	//}
 	cmdMenu = gtk_menu_new();
 	gtk_menu_set_reserve_toggle_size(GTK_MENU(cmdMenu), false);
 
@@ -860,46 +903,65 @@ recreate_cmd_popup_menu(const char *cmd_str)
 
 	pch = strtok(tmp, ",");
 
-	while (pch != '\0' && pch != NULL) {
+	while (pch && pch != '\0') {
 /* cmd trade snow coin flower flower2 flower3 battle venom love love2 love3 clan alliance list radio */
-		if (g_ascii_strcasecmp(pch, "trade") == 0)
+		if (g_ascii_strcasecmp(pch, "trade") == 0) {
 			trade = true;
-		if (g_ascii_strcasecmp(pch, "snow") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "snow") == 0) {
 			snow = true;
-		if (g_ascii_strcasecmp(pch, "dirt") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "dirt") == 0) {
 			dirt = true;
-		if (g_ascii_strcasecmp(pch, "coin") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "coin") == 0) {
 			coin = true;
-		if (g_ascii_strcasecmp(pch, "flower") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "flower") == 0) {
 			flower = true;
-		if (g_ascii_strcasecmp(pch, "flower2") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "flower2") == 0) {
 			flower2 = true;
-		if (g_ascii_strcasecmp(pch, "flower3") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "flower3") == 0) {
 			flower3 = true;
-		if (g_ascii_strcasecmp(pch, "battle") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "battle") == 0) {
 			battle = true;
-		if (g_ascii_strcasecmp(pch, "venom") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "venom") == 0) {
 			venom = true;
-		if (g_ascii_strcasecmp(pch, "kiss") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "kiss") == 0) {
 			kiss = true;
-		if (g_ascii_strcasecmp(pch, "kiss2") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "kiss2") == 0) {
 			kiss2 = true;
-		if (g_ascii_strcasecmp(pch, "kiss3") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "kiss3") == 0) {
 			kiss3 = true;
-		if (g_ascii_strcasecmp(pch, "love") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "love") == 0) {
 			love = true;
-		if (g_ascii_strcasecmp(pch, "love2") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "love2") == 0) {
 			love2 = true;
-		if (g_ascii_strcasecmp(pch, "love3") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "love3") == 0) {
 			love3 = true;
-		if (g_ascii_strcasecmp(pch, "clan") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "clan") == 0) {
 			clan = true;
-		if (g_ascii_strcasecmp(pch, "alliance") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "alliance") == 0) {
 			alliance = true;
-		if (g_ascii_strcasecmp(pch, "radio") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "radio") == 0) {
 			radio = true;
-		if (g_ascii_strcasecmp(pch, "list") == 0)
+		}
+		if (g_ascii_strcasecmp(pch, "list") == 0) {
 			list = true;
+		}
 		pch = strtok(NULL, ",");
 	}
 
@@ -1090,7 +1152,7 @@ press_smiles_cb(GtkWidget *w)
 static bool
 press_cmd_cb(GtkWidget *w, GdkEvent *e)
 {
-	if (cmdMenu != NULL) {
+	if (cmdMenu) {
 		// create_cmdMenu();
 		gtk_menu_popup(GTK_MENU(cmdMenu), NULL, NULL, NULL, NULL, 2, 0);
 	} else {

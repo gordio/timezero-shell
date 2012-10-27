@@ -6,17 +6,6 @@
 #include <webkit/webkit.h>
 #include "log.h"
 
-#ifndef FALSE
-#define FALSE (0)
-#endif
-#ifndef TRUE
-#define TRUE (1)
-#endif
-#ifndef NULL
-#define NULL (0L)
-#endif
-
-#define uint unsigned int
 #define countof(a) ((sizeof(a)/sizeof((a)[0])))
 
 #define MIN_WINDOW_WIDTH 1004
@@ -27,8 +16,11 @@
 #define MAX_CLAN_SIZE 30
 #define NICK_SIZE 512 // size in memory for Nickname
 
-#define LOG_FILE_NAME "timezero.log"
-#define PRINT_VERSION " \e[1mVersion:\e[0m %s \t\t\e[1mBuild:\e[0m %s, %s\n", VERSION, __DATE__, __TIME__
+#define VERSION "0.3"
+#ifndef VERSION_EXT
+#  define VERSION_EXT "?"
+#endif
+#define PRINT_VERSION " \033[1mBuild:\033[0m %s, %s \t\t\033[1mVersion:\033[0m %s-%s\n", __DATE__, __TIME__, VERSION, VERSION_EXT
 
 
 #ifdef ENABLE_NLS
@@ -46,23 +38,11 @@
 #define S_(str) ((char*) (str))
 #endif
 
-#include "../build/config.h"
-
-
-enum {
-	CHAT_FULL_OFF,
-	CHAT_OFF,
-	CHAT_ON,
-	CHAT_REFRESH_OFF,
-	CHAT_REFRESH_ON,
-};
-
-
 // Player
 typedef struct tzPlayer_t {
 	unsigned long long int battleid;
 	int group;
-	uint state;
+	unsigned int state;
 	char *clan;
 	char *nick;
 	int level;
@@ -78,27 +58,9 @@ typedef struct tzLogin_t {
 	char *password;
 	char *clan;
 	char *profession;
-	uint level;
-	uint rank;
+	unsigned int level;
+	unsigned int rank;
 	char *key_file_path;
 } tzLogin;
-
-#define CHAT_TIME_COLOR "#A0A0A0"
-#define CHAT_NICK_COLOR "#FFFFFF"
-#define CHAT_SYSTEM_COLOR "#AB8D68"
-#define CHAT_COLOR1 "#E0E0E0"
-#define CHAT_COLOR2 "#8BB8E8"
-#define CHAT_COLOR3 "#E999FF"
-#define CHAT_COLOR4 "#B0B0B0"
-#define CHAT_COLOR5 "#A3FF8A"
-#define CHAT_COLOR6 "#FF8AA3"
-#define CHAT_COLOR7 "#729FCF"
-#define CHAT_COLOR8 "#FFE68A"
-#define CHAT_COLOR9 "#AB8AFF"
-#define CHAT_COLOR10 "#8AFFE6"
-#define CHAT_COLOR11 "#FFCB0F"
-#define CHAT_COLOR12 "#FF577B"
-#define CHAT_COLOR13 "#7BFF57"
-#define CHAT_COLOR14 "#CAAFAF"
 
 #endif

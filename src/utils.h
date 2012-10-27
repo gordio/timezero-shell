@@ -3,18 +3,17 @@
 
 #include <gtk/gtk.h>
 
-/* GTK */
-GtkWidget *al_list_widget_create();
-GtkWidget *image_button_new();
-GtkWidget *image_toggle_button_new();
-GtkWidget *chat_msg_view_new();
-GtkWidget *list_nickbox_create();
+
+GtkWidget * al_list_widget_create();
+GtkWidget * list_nickbox_create();
+void gtk_button_add_image(GtkButton *button, char *image_path);
 
 int get_rank_num_from_ranks();
 
-/* Strings */
-void rem_substr();
-char *replace_substr_in_str();
-char *escape_str();
+void rem_substr(char *str, const char const *substr);
+char * strdup();
+char * rep_substr();
+char * escape_str();
+
 
 #endif

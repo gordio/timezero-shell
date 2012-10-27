@@ -9,16 +9,16 @@
 #include "main.h"
 #include "flash.h"
 
+#include "autologin.h"
+
+
 GtkWidget *al_window, *al_add_window;
-GtkWidget *al_image_proff, *al_image_clan, *al_image_rank;
-GtkBox *al_hbox, *al_box, *al_buttons_box;
+GtkBox *al_box, *al_buttons_box;
 
 GtkWidget *al_remove_button, *al_edit_button;
 
 GtkEntry *login_entry, *pass_entry;
 GtkWidget *file_chooser;
-
-#include "autologin.h"
 
 static tzLogin al_list[MAX_AUTOLOGIN_ITEMS];
 static GtkWidget *al_widget[MAX_AUTOLOGIN_ITEMS];
@@ -77,13 +77,23 @@ al_window_create(void)
 	al_buttons_box = GTK_BOX(gtk_hbox_new(false, 2));
 	gtk_box_pack_start(al_box, GTK_WIDGET(al_buttons_box), false, false, 0);
 
-	al_remove_button = image_toggle_button_new("img/button/delete.png", "", _("Remove"), &al_item_remove_cb);
+	al_remove_button = gtk_toggle_button_new();
+	gtk_button_add_image(GTK_BUTTON(al_remove_button), "img/button/delete.png");
+	gtk_widget_set_tooltip_text(al_remove_button, _("Remove"));
+	g_signal_connect(G_OBJECT(al_remove_button), "clicked", G_CALLBACK(al_item_remove_cb), NULL);
 	gtk_box_pack_start(al_buttons_box, GTK_WIDGET(al_remove_button), false, false, 0);
 
-	al_edit_button = image_toggle_button_new("img/button/edit.png", "", _("Edit"), &al_item_edit_cb);
+	al_edit_button = gtk_toggle_button_new();
+	gtk_button_add_image(GTK_BUTTON(al_edit_button), "img/button/edit.png");
+	gtk_widget_set_tooltip_text(al_edit_button, _("Edit"));
+	g_signal_connect(G_OBJECT(al_edit_button), "clicked", G_CALLBACK(al_item_edit_cb), NULL);
 	gtk_box_pack_start(al_buttons_box, GTK_WIDGET(al_edit_button), false, false, 0);
 
-	button = GTK_BUTTON(image_button_new("img/button/add.png", _("Add"), _("Add"), &al_item_add_cb));
+	button = GTK_BUTTON(gtk_button_new());
+	gtk_button_set_label(button, _("Add"));
+	gtk_button_add_image(button, "img/button/add.png");
+	gtk_widget_set_tooltip_text(GTK_WIDGET(button), _("Add"));
+	g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(al_item_add_cb), NULL);
 	gtk_box_pack_end(al_buttons_box, GTK_WIDGET(button), false, false, 0);
 
 
@@ -95,7 +105,7 @@ al_window_create(void)
 
 	// check automatic logon with autologin
 	if (default_autologin) {
-		for (uint i = 0; i < MAX_AUTOLOGIN_ITEMS && al_list[i].login; i++) {
+		for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS && al_list[i].login; i++) {
 			// create both strings lovercase
 			char *login = g_utf8_strdown(al_list[i].login, -1);
 			char *nick = g_utf8_strdown(default_autologin, -1);
@@ -144,7 +154,7 @@ al_list_update_by_player(tzPlayer *p)
 {
 	vlog("Update autologin info from chat player info");
 
-	for (uint i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
+	for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
 		// check pointers. make SIGSEG for NULL in strcmp()
 		if (!al_list[i].login) {
 			continue;
@@ -174,11 +184,7 @@ al_list_update_by_player(tzPlayer *p)
 			int prof = ((p->state >> 5) & 63);
 
 			char *tmp_mem = malloc(4);
-			if (woman) {
-				snprintf(tmp_mem, 3, "%iw", prof);
-			} else {
-				snprintf(tmp_mem, 3, "%i", prof);
-			}
+			snprintf(tmp_mem, 3, woman ? "%iw" : "%i", prof);
 
 			al_list[i].profession = tmp_mem;
 
@@ -206,11 +212,8 @@ al_item_window_create(tzLogin *l)
 	GtkBox *vbox;
 
 	al_add_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	if (!l) {
-		gtk_window_set_title(GTK_WINDOW(al_add_window), _("Add autologin item"));
-	} else {
-		gtk_window_set_title(GTK_WINDOW(al_add_window), _("Edit autologin item"));
-	}
+	// если передан логин - редактирование
+	gtk_window_set_title(GTK_WINDOW(al_add_window), l ? _("Edit autologin item") : _("Add autologin item"));
 	gtk_window_set_position(GTK_WINDOW(al_add_window), GTK_WIN_POS_CENTER);
 	gtk_window_set_resizable(GTK_WINDOW(al_add_window), false);
 	gtk_window_set_modal(GTK_WINDOW(al_add_window), true);
@@ -223,6 +226,7 @@ al_item_window_create(tzLogin *l)
 
 	gtk_container_add(GTK_CONTAINER(al_add_window), GTK_WIDGET(vbox));
 
+
 	// Login
 	w = gtk_label_new(_("Login:"));
 	gtk_label_set_justify(GTK_LABEL(w), GTK_JUSTIFY_LEFT);
@@ -233,6 +237,7 @@ al_item_window_create(tzLogin *l)
 		gtk_entry_set_text(login_entry, l->login);
 	}
 	gtk_box_pack_start(vbox, GTK_WIDGET(login_entry), false, true, 0);
+
 
 	// Password
 	w = gtk_label_new(_("Password:"));
@@ -245,6 +250,7 @@ al_item_window_create(tzLogin *l)
 		gtk_entry_set_text(pass_entry, l->password);
 	}
 	gtk_box_pack_start(vbox, GTK_WIDGET(pass_entry), false, true, 0);
+
 
 	// Key file
 	w = gtk_label_new(_("Key file:"));
@@ -302,7 +308,7 @@ al_add_item_window(GtkButton *b, gpointer user_data)
 	tzLogin *login_item = NULL;
 
 	// check exist
-	for (uint i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
+	for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
 		if (al_list[i].login && strcmp(al_list[i].login, gtk_entry_get_text(login_entry)) == 0) {
 			wlog("Login exist. Choice new or remove old.");
 
@@ -311,7 +317,7 @@ al_add_item_window(GtkButton *b, gpointer user_data)
 	}
 
 	// find empty pointer (slot)
-	for (uint i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
+	for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
 		if (!al_list[i].login) {
 			login_item = &al_list[i];
 			break;
@@ -460,7 +466,7 @@ al_list_clean(void)
 {
 	vlog("Clean autologin list.");
 
-	for (uint i = 0; i < countof(al_list); ++i) {
+	for (unsigned int i = 0; i < countof(al_list); ++i) {
 		if (al_list[i].login != NULL) {
 			free(al_list[i].login);
 		}
@@ -487,7 +493,7 @@ al_list_buttons_redraw(void)
 	GtkWidget *button;
 
 	// clean autologin widgets
-	for (uint i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
+	for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
 		if (al_widget[i]) {
 			gtk_widget_destroy(al_widget[i]);
 			al_widget[i] = NULL;
@@ -495,12 +501,12 @@ al_list_buttons_redraw(void)
 	}
 
 	// Recreate autologin button widgets
-	for (uint i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
+	for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
 		if (al_list[i].login) {
 			button = gtk_button_new();
 
 			// Find "empty button widget"
-			for (uint i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
+			for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
 				if (!al_widget[i]) {
 					vlog("Find empty widget for [%i] button", i);
 					al_widget[i] = button;
@@ -546,11 +552,11 @@ al_list_load(void)
 		jso_login_item = json_object_array_get_idx(jso_login_array, i);
 
 		for (int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
-			if (al_list[i].login == NULL) {
+			if (!al_list[i].login) {
 
 				// Login
 				tmp = json_object_object_get(jso_login_item, "login");
-				if (tmp == NULL) {
+				if (!tmp) {
 					elog("Can't parse autologin item [%i]", i);
 					break;
 				}
@@ -558,19 +564,19 @@ al_list_load(void)
 
 				// Password
 				tmp = json_object_object_get(jso_login_item, "password");
-				if (tmp != NULL) {
+				if (tmp) {
 					al_list[i].password = strdup(json_object_get_string(tmp));
 				}
 
 				// Secret Key
 				tmp = json_object_object_get(jso_login_item, "key_file");
-				if (tmp != NULL) {
+				if (tmp) {
 					al_list[i].key_file_path = strdup(json_object_get_string(tmp));
 				}
 
 				// Level
 				tmp = json_object_object_get(jso_login_item, "level");
-				if (tmp == NULL) {
+				if (!tmp) {
 					al_list[i].level = 0;
 				} else {
 					al_list[i].level = json_object_get_int(tmp);
@@ -578,7 +584,7 @@ al_list_load(void)
 
 				// Rank
 				tmp = json_object_object_get(jso_login_item, "rank");
-				if (tmp == NULL) {
+				if (!tmp) {
 					al_list[i].rank = 0;
 				} else {
 					al_list[i].rank = json_object_get_int(tmp);
@@ -586,13 +592,13 @@ al_list_load(void)
 
 				// Job
 				tmp = json_object_object_get(jso_login_item, "profession");
-				if (tmp != NULL) {
+				if (tmp) {
 					al_list[i].profession = strdup(json_object_get_string(tmp));
 				}
 
 				// Clan
 				tmp = json_object_object_get(jso_login_item, "clan");
-				if (tmp != NULL) {
+				if (tmp) {
 					al_list[i].clan = strdup(json_object_get_string(tmp));
 				}
 
@@ -615,22 +621,22 @@ al_list_save(void)
 	jso_login_array = json_object_new_array();
 
 	for (int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
-		if (al_list[i].login != NULL) {
+		if (al_list[i].login) {
 			jso_login_item = json_object_new_object();
 			json_object_object_add(jso_login_item, "login", json_object_new_string(al_list[i].login));
-			if (al_list[i].password != NULL) {
+			if (al_list[i].password) {
 				json_object_object_add(jso_login_item, "password", json_object_new_string(al_list[i].password));
 			}
-			if (al_list[i].key_file_path != NULL) {
+			if (al_list[i].key_file_path) {
 				json_object_object_add(jso_login_item, "key_file_path", json_object_new_string(al_list[i].key_file_path));
 			}
-			if (al_list[i].clan != NULL) {
+			if (al_list[i].clan) {
 				json_object_object_add(jso_login_item, "clan", json_object_new_string(al_list[i].clan));
 			}
 			if (al_list[i].level != 0) {
 				json_object_object_add(jso_login_item, "level", json_object_new_int(al_list[i].level));
 			}
-			if (al_list[i].profession != NULL) {
+			if (al_list[i].profession) {
 				json_object_object_add(jso_login_item, "profession", json_object_new_string(al_list[i].profession));
 			}
 			if (al_list[i].rank != 0) {
@@ -660,7 +666,7 @@ al_window_move(void)
 	x = root_x;
 	y = root_y;
 	y += root_h / 2; // window center
-	y -= h / 2;  // login window center
+	y -= h / 2;      // login window center
 
 	gtk_window_move(GTK_WINDOW(al_window), x, y);
 }

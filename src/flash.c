@@ -25,7 +25,7 @@ static bool script_alert_cb();
 
 
 static void
-webkit_set_proxy(const char *host, guint port, const char *user, const char *pwd)
+webkit_set_proxy(const char *host, unsigned int port, const char *user, const char *pwd)
 {
 	SoupURI *proxy = NULL;
 

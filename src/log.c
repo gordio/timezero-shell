@@ -9,11 +9,11 @@
 #include "log.h"
 
 #ifdef ENABLE_CLI_COLORS
-#define CLI_COLOR_RED "\e[31m"
-#define CLI_COLOR_GREEN "\e[31m"
-#define CLI_COLOR_GRAY "\e[37m"
-#define CLI_COLOR_YELLOW "\e[33m"
-#define CLI_COLOR_DISABLE "\e[m"
+#define CLI_COLOR_RED "\033[31m"
+#define CLI_COLOR_GREEN "\033[31m"
+#define CLI_COLOR_GRAY "\033[37m"
+#define CLI_COLOR_YELLOW "\033[33m"
+#define CLI_COLOR_DISABLE "\033[m"
 #else
 #define CLI_COLOR_RED ""
 #define CLI_COLOR_GREEN ""

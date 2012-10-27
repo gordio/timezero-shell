@@ -3,11 +3,9 @@
 
 #include <gtk/gtk.h>
 
-// window
-//void keypress_cb(GtkWidget *w, GdkEvent *e, gpointer user_data);
+
 
 bool keypress_cb(GtkWidget *w, GdkEventKey *e, gpointer user_data);
-
 void print_resize();
 
 // Chat
@@ -22,5 +20,6 @@ void flash_resize_cb();
 
 void set_cursor_hand_cb(GtkWidget *w, GdkEvent *e, gpointer user_data);
 void unset_cursor_hand_cb(GtkWidget *w, GdkEvent *e, gpointer user_data);
+
 
 #endif

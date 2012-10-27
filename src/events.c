@@ -175,7 +175,7 @@ chat_text_view_event_cb(GtkWidget *w, GdkEventMotion *event, GSList *tags)
 	GtkTextTag *tag;
 	bool this_tag = false;
 
-	for (uint i = 0; i < g_slist_length(tags); ++i) {
+	for (unsigned int i = 0; i < g_slist_length(tags); ++i) {
 		tag = g_slist_nth_data(tags, i);
 		if (gtk_text_iter_has_tag(&iter, GTK_TEXT_TAG(tag))) {
 			this_tag = true;

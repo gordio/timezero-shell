@@ -50,7 +50,7 @@ room_array_qsort_by_level(tzPlayer list[], int beg, int end)
 void
 room_array_sort_by_level(tzPlayer list[])
 {
-	for (uint i = 0; i < MAX_ROOM_NICKS; i++) {
+	for (unsigned int i = 0; i < MAX_ROOM_NICKS; i++) {
 		for (int j = 1; j < MAX_ROOM_NICKS; j++) {
 			if (list[j-1].level > list[j].level) {
 				tzplayer_swap(&list[j-1], &list[j]);
@@ -67,17 +67,17 @@ room_array_sort_by_level(tzPlayer list[])
 void
 room_array_sort_by_level_by_rank(tzPlayer list[])
 {
-	uint beg = 0, end = 0;
+	unsigned int beg = 0, end = 0;
 
-	for (uint i = 0; i < MAX_ROOM_NICKS; i++) {
+	for (unsigned int i = 0; i < MAX_ROOM_NICKS; i++) {
 		// пропускаем отсортированный элемент
 		if (list[i].level == list[i+1].level) {
 			end = i + 1;
 			continue;
 		}
 
-		for (uint j = beg; j <= end && beg != end; j++) {
-			for (uint k = beg; k <= end; k++) {
+		for (unsigned int j = beg; j <= end && beg != end; j++) {
+			for (unsigned int k = beg; k <= end; k++) {
 				if (list[k].rank > list[k+1].rank && list[k].level == list[k+1].level) {
 					tzplayer_swap(&list[k], &list[k+1]);
 				}

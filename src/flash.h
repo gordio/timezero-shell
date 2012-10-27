@@ -3,8 +3,10 @@
 
 #include <webkit/webkit.h>
 
+
 extern WebKitWebView *webView;
 extern bool *tz_fullscreen;
+
 
 GtkWidget *create_flash_frame();
 

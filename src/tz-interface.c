@@ -6,45 +6,69 @@
 
 
 // Выполнить команду
-void tzExec(const char *cmd)
+void
+tzExec(const char *cmd)
 {
 	webkit_web_view_execute_script(webView, g_strconcat("tz.", cmd, NULL));
 }
 
 // Установить значение переменной
-void tzSetVar(const char *var, const char *value)
+void
+tzSetVar(const char *var, const char *value)
 {
-	char *cmd = g_strconcat("SetVariable(\"", var, "\", \"", value, "\")", NULL);
+	char *cmd;
+
+	cmd = g_strconcat("SetVariable(\"", var, "\", \"", value, "\")", NULL);
 	tzExec(cmd);
+
 	free(cmd);
 }
 
 // Открыть окно с информацией о персонаже
-void tz_info_open(const char *nick)
+void
+tz_info_open(const char *nick)
 {
-	tzExec(g_strconcat("getUserInfo(\"", nick, "\");", NULL));
+	char *cmd;
+
+	cmd = g_strconcat("getUserInfo(\"", nick, "\");", NULL);
+	tzExec(cmd);
+
+	free(cmd);
 }
 
 // Просмотреть идущий бой
-void tz_battle_show(const uint *battle_id)
+void
+tz_battle_show(const unsigned int *battle_id)
 {
-	tzExec(g_strconcat("lookBattle(\"", battle_id, "\");", NULL));
+	char *cmd;
+
+	cmd = g_strconcat("lookBattle(\"", battle_id, "\");", NULL);
+	tzExec(cmd);
+
+	free(cmd);
 }
 
 // Войти в бой
-void tz_battle_join(const int side, const guint battle_id, int bloodbtl)
+void
+tz_battle_join(const int side, const unsigned int battle_id, int bloodbtl)
 {
-	tzExec(g_strconcat("joinBattle(\"", battle_id, "\", \"", side, "\", \"", bloodbtl, "\");", NULL));
+	char *cmd;
+
+	cmd = g_strconcat("joinBattle(\"", battle_id, "\", \"", side, "\", \"", bloodbtl, "\");", NULL);
+	tzExec(cmd);
+
+	free(cmd);
 }
 
 // Обновить размеры флеш окна (актуально при растягивании)
-void tzFlashResize()
+void
+tzFlashResize()
 {
 	tzExec("resizeStage();");
 }
 
-// Выйти из игры
-void tzLogout(void)
+void
+tzLogout(void)
 {
 	tzExec("gameLogOut();");
 }

@@ -42,8 +42,9 @@ int main(int argc, char **argv, char *envp[])
 		return -1;
 	}
 
-	if (!tz_client_dir)
+	if (!tz_client_dir) {
 		tz_client_dir = g_strconcat(home_dir, G_DIR_SEPARATOR_S, ".timezero", G_DIR_SEPARATOR_S, NULL);
+	}
 
 	if (chdir(tz_client_dir) == -1) {
 		elog("Can't change work directory to: %s", tz_client_dir);
@@ -76,17 +77,17 @@ initArgs(const int argc, char *argv[])
 {
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
-			printf("\e[1m Usage:\e[0m\n");
+			printf("\033[1m Usage:\033[0m\n");
 			printf("  %s --full-screen --autologin \"Nick Name\"\n", argv[0]);
 			printf("\n");
-			printf("\e[1m Options:\e[0m\n");
+			printf("\033[1m Options:\033[0m\n");
 			printf("  --full-screen, -f     Start in full screen mode.\n");
 			printf("  --autologin, -l       Auto LogIn  nickname.\n");
 			printf("  --client-dir, -cd     TimeZero Client directory.\n");
 			printf("  --no-theme, -nt       Use system GTK+ theme.\n");
 			printf("  --auto-mine, -am      Use power Luke.\n");
 			printf("\n");
-			printf("\e[1m Extended options:\e[0m\n");
+			printf("\033[1m Extended options:\033[0m\n");
 			printf("  --version, -v         Show version info.\n");
 			printf("  --verbose, -V         Verbose mode.\n");
 			printf("\n");
