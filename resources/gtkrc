@@ -20,12 +20,12 @@ style "murrine-default" {
 	GtkRange       ::stepper-size         = 11
 
 	GtkScale       ::slider-length        = 13
-	GtkScrollbar       ::has-backward-stepper        = 0
-	GtkScrollbar       ::has-forward-stepper        = 0
+	GtkScrollbar   ::has-backward-stepper        = 0
+	GtkScrollbar   ::has-forward-stepper        = 0
 	GtkScale       ::trough-side-details  = 0	       # 0 = thin slider, >0 = thick slider
 	GtkScrollbar   ::min-slider-length    = 20
 
-  	GtkScrolledWindow::scrollbar-spacing	= 1
+	GtkScrolledWindow::scrollbar-spacing	= 1
 
 	GtkNotebook::arrow-spacing = 4
 	GtkNotebook::tab-overlap = 3
@@ -40,9 +40,6 @@ style "murrine-default" {
 	GtkMenu        ::horizontal-padding   = 0
 	GtkMenu        ::vertical-padding     = 0
 
-	# Glow the tasklist by changing the color, instead of overlaying it with a rectangle
-	#WnckTasklist   ::fade-overlay-rect    = 0
-
 	GtkToolbar     :: shadow-type          = GTK_SHADOW_NONE
 	GtkMenuBar     :: shadow-type          = GTK_SHADOW_NONE
 
@@ -52,17 +49,17 @@ style "murrine-default" {
 	xthickness = 1
 	ythickness = 1
 
-	fg[NORMAL]        = @fg_color 		    # Metacity and mouseover, Most text
-	fg[PRELIGHT]      = "DarkGoldenrod"               # Text when mouseover
-	fg[ACTIVE]        = shade(0.8, @text_color)               # Text when mouseclicking button, Tabs, Active window list
+	fg[NORMAL]        = @fg_color               # Metacity and mouseover, Most text
+	fg[PRELIGHT]      = "DarkGoldenrod"         # Text when mouseover
+	fg[ACTIVE]        = shade(0.8, @text_color) # Text when mouseclicking button, Tabs, Active window list
 	fg[SELECTED]      = @selected_fg_color      # Metacity X when window selected
-	fg[INSENSITIVE]   = shade(0.17, @fg_color) # Insensitive Text
+	fg[INSENSITIVE]   = shade(0.17, @fg_color)  # Insensitive Text
 
-	bg[NORMAL]        = @bg_color               # Normal Background, inactive Metacity bar, buttons
-	bg[PRELIGHT]      = shade(1.1, @bg_color) # Mouseover buttons
+	bg[NORMAL]        = @bg_color              # Normal Background, inactive Metacity bar, buttons
+	bg[PRELIGHT]      = shade(1.1, @bg_color)  # Mouseover buttons
 	bg[ACTIVE]        = shade(0.77, @bg_color) # Mouseclicking, Tabs, active window list
-	bg[SELECTED]	  = @selected_bg_color      # Metacity Bar
-	bg[INSENSITIVE]   = @bg_color               # Insensitive buttons
+	bg[SELECTED]      = @selected_bg_color     # Metacity Bar
+	bg[INSENSITIVE]   = @bg_color              # Insensitive buttons
 
 	base[NORMAL]      = @base_color             # Background, most
 	base[PRELIGHT]    = shade(0.9, @bg_color)   # Mouseover menu
@@ -81,7 +78,7 @@ style "murrine-default" {
 		colorize_scrollbar  = FALSE # FALSE = disabled, TRUE = enabled
 		contrast            = 1.07  # 0.8 for less contrast, more than 1.0 for more contrast on borders
 		glazestyle          = 5     # 0 = flat highlight, 1 = curved highlight, 2 = concave style, 3 = top curved highlight, 4 = beryl highlight
-		gradient_shades     = { 0.6, 0.9, 1.0, 1.1 } # default: {1.1,1.0,1.0,1.1}
+		gradient_shades     = { 0.6, 0.9, 1.0, 1.1 }
 		highlight_shade     = 1.23  # set highlight amount for buttons or widgets
 		lightborder_shade   = 1.5   # sets lightborder amount for buttons or widgets
 		lightborderstyle    = 1     # 0 = lightborder on top side, 1 = lightborder on all sides
@@ -91,15 +88,15 @@ style "murrine-default" {
 		menubarstyle        = 0     # 0 = flat, 1 = glassy, 2 = gradient, 3 = striped
 		menuitemstyle       = 1     # 0 = flat, 1 = glassy, 2 = striped
 		menustyle           = 0     # 0 = no vertical menu stripe, 1 = display vertical menu stripe
-		reliefstyle	    = 2     # 0 = flat, 1 = inset, 2 = shadow
-		rgba		    = TRUE  # FALSE = disabled, TRUE = enabled
+		reliefstyle         = 2     # 0 = flat, 1 = inset, 2 = shadow
+		rgba                = TRUE  # FALSE = disabled, TRUE = enabled
 		roundness           = 2     # 0 = squared, 1 = old default, more will increase roundness
 		scrollbarstyle      = 2     # 0 = nothing, 1 = circles, 2 = handles, 3 = diagonal stripes, 4 = diagonal stripes and handles, 5 = horizontal stripes, 6 = horizontal stripes and handles
 		sliderstyle         = 0     # 0 = nothing added, 1 = handles
 		stepperstyle        = 1     # 0 = standard, 1 = integrated stepper handles, 2 = unknown
-		toolbarstyle	    = 0     # 0 = flat, 1 = glassy, 2 = gradient
-		glow_shade = 1.4
-		glowstyle = 3
+		toolbarstyle        = 0     # 0 = flat, 1 = glassy, 2 = gradient
+		glow_shade          = 1.4
+		glowstyle           = 3
 	}
 }
 
@@ -114,8 +111,9 @@ style "murrine-wider" {
 }
 
 style "murrine-notebook" {
-xthickness = 1
-ythickness = 1
+	xthickness = 1
+	ythickness = 1
+
 	engine "murrine" {
 		highlight_shade = 1.25
 		lightborder_shade = 1.1
@@ -178,7 +176,7 @@ style "murrine-range" = "murrine-wide" {
 	fg[SELECTED]      = "#A20"
 	fg[INSENSITIVE]   = "#A20"
 
-	bg[NORMAL]        = "#A20"               # Normal Background, inactive Metacity bar, buttons
+	bg[NORMAL]        = "#A20"           # Normal Background, inactive Metacity bar, buttons
 	bg[PRELIGHT]      = "#A20"
 	bg[ACTIVE]        = "#A20"
 	bg[SELECTED]      = "#A20"
@@ -190,7 +188,7 @@ style "murrine-range" = "murrine-wide" {
 	base[SELECTED]    = "#A20"
 	base[INSENSITIVE] = "#A20"
 
-	text[NORMAL]      = "#A20"             # Text in window
+	text[NORMAL]      = "#A20"            # Text in window
 	text[PRELIGHT]    = "#A20"
 	text[ACTIVE]      = "#A20"
 	text[SELECTED]    = "#A20"
@@ -201,6 +199,7 @@ style "murrine-range" = "murrine-wide" {
 style "murrine-tooltips" = "murrine-wider" {
 	xthickness   = 0
 	ythickness   = 0
+
 	bg[NORMAL] = @tooltip_bg_color
 	fg[NORMAL] = @tooltip_fg_color
 }
@@ -210,8 +209,8 @@ style "murrine-progressbar" {
 	ythickness   = 0
 
 	fg[PRELIGHT] = @selected_fg_color
-	bg[ACTIVE]     = shade(1.4, @selected_bg_color)
-	bg[SELECTED]   = "#A10"
+	bg[ACTIVE]   = shade(1.4, @selected_bg_color)
+	bg[SELECTED] = "#A10"
 
 	engine "murrine" {
 		contrast = 2.0 # Darken unfilled progressbar background
@@ -230,7 +229,7 @@ style "murrine-spinbutton" {
 }
 
 style "murrine-scale" {
-	GtkRange        ::slider-width = 13
+	GtkRange::slider-width = 13
 
 	bg[NORMAL]      = shade(0.95, @bg_color)
 	bg[INSENSITIVE] = shade(0.99, @bg_color)
@@ -249,14 +248,14 @@ style "murrine-vscale" {
 
 style "murrine-scrollbar" {
 	bg[NORMAL]      = shade(0.7, @bg_color)
-	bg[SELECTED]      = mix(0.5, @selected_bg_color, shade(0.97, "DarkGoldenrod"))
+	bg[SELECTED]    = mix(0.5, @selected_bg_color, shade(0.97, "DarkGoldenrod"))
 	bg[ACTIVE]      = shade(0.7, @bg_color)
 	bg[INSENSITIVE] = shade(0.7, @bg_color)
-	fg[NORMAL]   = shade(0.7, @bg_color)
-	fg[PRELIGHT] = shade(0.7, @bg_color)
+	fg[NORMAL]      = shade(0.7, @bg_color)
+	fg[PRELIGHT]    = shade(0.7, @bg_color)
 	fg[INSENSITIVE] = shade(0.7, @bg_color)
 
-	engine "murrine" 
+	engine "murrine"
 	{
 		contrast = 1.4
 		roundness = 1
@@ -280,11 +279,11 @@ style "metacity-frame" {
 }
 
 style "murrine-radiocheck" = "murrine-default" {
-	base[NORMAL]   = @bg_color 
+	base[NORMAL]   = @bg_color
 	text[NORMAL]   = @fg_color             # Text in window
 	text[PRELIGHT] = @fg_color             # Text on Mouseover
-	
-	engine "murrine" 
+
+	engine "murrine"
 	{
 		highlight_shade = 1.0
 	}
@@ -310,18 +309,18 @@ style "murrine-button" {
 #########################################
 
 # Theme radio buttons and checkmarks
-class "GtkRadio*"                        		style "murrine-radiocheck"
-class "GtkCheck*"                           		style "murrine-radiocheck"
+class "GtkRadio*" style "murrine-radiocheck"
+class "GtkCheck*" style "murrine-radiocheck"
 
 # Keep proper colour for Metacity
-class "MetaFrames" 					style "metacity-frame"
-#class "GtkWindow"    			    		style "metacity-frame"
+class "MetaFrames" style "metacity-frame"
+#class "GtkWindow" style "metacity-frame"
 
 # Theme default style is applied to every widget
 class "GtkWidget"    					style "murrine-default"
 
 # Increase the x/ythickness in some widgets
-class "GtkToolbar"   					style "murrine-default" 
+class "GtkToolbar"   					style "murrine-default"
 class "GtkRange"     					style "murrine-wide"
 class "GtkFrame"     					style "murrine-wide"
 class "GtkSeparator" 					style "murrine-wide"
@@ -368,7 +367,7 @@ widget_class "*.<GtkCTree>.<GtkButton>"    		style "murrine-treeview-header"
 widget_class "*.<GtkList>.<GtkButton>"     		style "murrine-treeview-header"
 widget_class "*.<GtkCList>.<GtkButton>"    		style "murrine-treeview-header"
 widget_class "*.<GtkTreeView>*<GtkLabel>*"		style "murrine-treeview-header"         # DARK: ensure GtkTreeView header text is light
-widget_class "*.<GtkTreeView>*<GtkArrow>*"		style:highest "murrine-treeview-header" # DARK: ensure GtkArrows are light 
+widget_class "*.<GtkTreeView>*<GtkArrow>*"		style:highest "murrine-treeview-header" # DARK: ensure GtkArrows are light
 
 # Workarounds for Evolution
 widget_class "*.ETable.ECanvas"    			style "murrine-treeview-header"
@@ -445,7 +444,7 @@ widget_class "EShellWindow.GtkVBox.BonoboDock.BonoboDockBand.BonoboDockItem*" st
 
 style "murrine-darker" {
         fg[NORMAL] = shade(0.1, @fg_color)
-        fg[ACTIVE] = shade(0.1, @fg_color) 
+        fg[ACTIVE] = shade(0.1, @fg_color)
 }
 widget "*auti*IconView*"                        style : highest "murrine-darker"
 
