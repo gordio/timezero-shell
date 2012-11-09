@@ -494,3 +494,5 @@ rep_substr(const char *str, const char *old, const char *new)
 
 	return ret;
 }
+
+/* vim: set fdm=marker ts=4 sw=4 tw=100 fo-=t ff=unix: */

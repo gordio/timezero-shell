@@ -25,7 +25,8 @@
 
 /* ERROR */
 void
-elog(const char *fmt, ...) {
+elog(const char *fmt, ...)
+{
 	char *msg = malloc(8196); // рефакторовец, не забудь латать течь
 	va_list ptr; // извлечение аргумента ptr
 
@@ -44,7 +45,8 @@ elog(const char *fmt, ...) {
 
 /* WARNING */
 void
-wlog(const char *fmt, ...) {
+wlog(const char *fmt, ...)
+{
 	char *msg = malloc(8196);
 	va_list ptr;
 
@@ -61,7 +63,8 @@ wlog(const char *fmt, ...) {
 
 /* INFO */
 void
-ilog(const char *fmt, ...) {
+ilog(const char *fmt, ...)
+{
 	char *msg;
 	va_list ptr;
 
@@ -78,7 +81,8 @@ ilog(const char *fmt, ...) {
 
 /* VERBOSE */
 void
-vlog(const char *fmt, ...) {
+vlog(const char *fmt, ...)
+{
 	if (!verbose) {
 		return;
 	}
@@ -96,3 +100,5 @@ vlog(const char *fmt, ...) {
 
 	free(msg);
 }
+
+/* vim: set fdm=marker ts=4 sw=4 tw=100 fo-=t ff=unix: */

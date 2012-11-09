@@ -203,17 +203,47 @@ keypress_cb(GtkWidget *w, GdkEventKey *e, gpointer user_data)
 			return TRUE;
 		}
 	}*/
-	switch (e->keyval) {
-		case GDK_F11:
-			fullscreen_toggle();
-			return true;
-		case GDK_F5:
-			tab_refresh();
-			return true;
-		case GDK_F12:
-			return true;
-		default:
-			return false;
+	if (e->state & GDK_MOD1_MASK) {
+		switch (e->keyval) {
+			case GDK_1:
+				chat_set_tab(1);
+				return true;
+
+			case GDK_2:
+				chat_set_tab(2);
+				return true;
+
+			case GDK_3:
+				chat_set_tab(3);
+				return true;
+
+			case GDK_4:
+				chat_set_tab(4);
+				return true;
+
+			case GDK_5:
+				chat_set_tab(5);
+				return true;
+
+			default:
+				return false;
+		}
+	} else {
+		switch (e->keyval) {
+			case GDK_F11:
+				fullscreen_toggle();
+				return true;
+
+			case GDK_F5:
+				tab_refresh();
+				return true;
+
+			case GDK_F12:
+				return true;
+
+			default:
+				return false;
+		}
 	}
 }
 
@@ -245,3 +275,5 @@ unset_cursor_hand_cb(GtkWidget *w, GdkEvent *e, gpointer user_data)
 {
 	gdk_window_set_cursor(gtk_widget_get_window(w), NULL);
 }
+
+/* vim: set fdm=marker ts=4 sw=4 tw=100 fo-=t ff=unix: */

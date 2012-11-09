@@ -5,6 +5,7 @@
 
 
 #define CHAT_TIME_COLOR "#A0A0A0"
+#define CHAT_HIGHLIGHT_BG_COLOR "#39342B"
 #define CHAT_NICK_COLOR "#FFFFFF"
 #define CHAT_SYSTEM_COLOR "#AB8D68"
 #define CHAT_COLOR1 "#E0E0E0"
@@ -21,6 +22,14 @@
 #define CHAT_COLOR12 "#FF577B"
 #define CHAT_COLOR13 "#7BFF57"
 #define CHAT_COLOR14 "#CAAFAF"
+
+enum {
+	MSG_VIEW_GENERAL,
+	MSG_VIEW_PRIVATE,
+	MSG_VIEW_CLAN,
+	MSG_VIEW_ALLIANCE,
+	MSG_VIEW_RADIO,
+};
 
 enum {
 	CHAT_FULL_OFF,
@@ -56,6 +65,5 @@ void show_system_msg();
 
 bool insert_nick_to_entry();
 bool insert_to_entry();
-
 
 #endif

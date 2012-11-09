@@ -72,3 +72,5 @@ tzLogout(void)
 {
 	tzExec("gameLogOut();");
 }
+
+/* vim: set fdm=marker ts=4 sw=4 tw=100 fo-=t ff=unix: */
