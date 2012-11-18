@@ -4,24 +4,19 @@
 #include <gtk/gtk.h>
 
 
-#define CHAT_TIME_COLOR "#A0A0A0"
-#define CHAT_HIGHLIGHT_BG_COLOR "#29241B"
-#define CHAT_NICK_COLOR "#FFFFFF"
-#define CHAT_SYSTEM_COLOR "#AB8D68"
-#define CHAT_COLOR1 "#E0E0E0"
-#define CHAT_COLOR2 "#8BB8E8"
-#define CHAT_COLOR3 "#E999FF"
-#define CHAT_COLOR4 "#B0B0B0"
-#define CHAT_COLOR5 "#A3FF8A"
-#define CHAT_COLOR6 "#FF8AA3"
-#define CHAT_COLOR7 "#729FCF"
-#define CHAT_COLOR8 "#FFE68A"
-#define CHAT_COLOR9 "#AB8AFF"
-#define CHAT_COLOR10 "#8AFFE6"
-#define CHAT_COLOR11 "#FFCB0F"
-#define CHAT_COLOR12 "#FF577B"
-#define CHAT_COLOR13 "#7BFF57"
-#define CHAT_COLOR14 "#CAAFAF"
+#define CHAT_TIME_FG      "#A0A0A0"
+#define CHAT_HIGHLIGHT_BG "#29241B"
+#define CHAT_NICK_FG      "#FFFFFF"
+#define CHAT_SYSTEM_FG    "#AB8D68"
+#define CHAT_MESSAGE_FG   "#EAEAEA"
+#define CHAT_FG_1         "#F2C4AB"
+#define CHAT_FG_2         "#F2E7AB"
+#define CHAT_FG_3         "#D9F2AB"
+#define CHAT_FG_4         "#ABF2C4"
+#define CHAT_FG_5         "#E7ABF2"
+#define CHAT_FG_6         "#ABB6F2"
+#define CHAT_FG_7         "#ABD9F2"
+#define CHAT_FG_8         "#C4ABF2"
 
 enum {
 	MSG_VIEW_GENERAL,

@@ -199,7 +199,7 @@ GtkWidget *
 chat_msg_view_new(void)
 {
 	GtkTextView *view;
-	GtkTextBuffer *viewBuffer;
+	GtkTextBuffer *view_buffer;
 	GtkTextTag *tag;
 	GSList *tags = NULL;
 
@@ -216,37 +216,32 @@ chat_msg_view_new(void)
 	gtk_text_view_set_indent(view, -160);
 
 
-	viewBuffer = gtk_text_view_get_buffer(view);
+	view_buffer = gtk_text_view_get_buffer(view);
 
-	tag = gtk_text_buffer_create_tag(viewBuffer, "monospace", "family", "monospace", NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "system", "family", "italic", "foreground", CHAT_SYSTEM_COLOR, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "monospace", "family", "monospace", NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "system", "family", "italic", "foreground", CHAT_SYSTEM_FG, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "message", "foreground", CHAT_MESSAGE_FG, NULL);
 
-	tag = gtk_text_buffer_create_tag(viewBuffer, "time", "family", "monospace", "foreground", CHAT_TIME_COLOR, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "time", "family", "monospace", "foreground", CHAT_TIME_FG, NULL);
 	g_signal_connect(G_OBJECT(tag), "event", G_CALLBACK(&tag_time_cb), view);
 	tags = g_slist_append(tags, tag);
 
-	tag = gtk_text_buffer_create_tag(viewBuffer, "nickname", "family", "monospace", "foreground", CHAT_NICK_COLOR, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "nickname", "family", "monospace", "foreground", CHAT_NICK_FG, NULL);
 	g_signal_connect(G_OBJECT(tag), "event", G_CALLBACK(&tag_nick_cb), view);
 	tags = g_slist_append(tags, tag);
 
 	g_signal_connect(G_OBJECT(view), "motion-notify-event", G_CALLBACK(&chat_text_view_event_cb), tags);
 
-	tag = gtk_text_buffer_create_tag(viewBuffer, "highlight", "background", CHAT_HIGHLIGHT_BG_COLOR, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "highlight", "background", CHAT_HIGHLIGHT_BG, NULL);
 
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c1", "foreground", CHAT_COLOR1, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c2", "foreground", CHAT_COLOR2, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c3", "foreground", CHAT_COLOR3, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c4", "foreground", CHAT_COLOR4, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c5", "foreground", CHAT_COLOR5, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c6", "foreground", CHAT_COLOR6, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c7", "foreground", CHAT_COLOR7, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c8", "foreground", CHAT_COLOR8, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c9", "foreground", CHAT_COLOR9, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c10", "foreground", CHAT_COLOR10, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c11", "foreground", CHAT_COLOR11, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c12", "foreground", CHAT_COLOR12, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c13", "foreground", CHAT_COLOR13, NULL);
-	tag = gtk_text_buffer_create_tag(viewBuffer, "c14", "foreground", CHAT_COLOR14, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "color-1", "foreground", CHAT_FG_1, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "color-2", "foreground", CHAT_FG_2, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "color-3", "foreground", CHAT_FG_3, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "color-4", "foreground", CHAT_FG_4, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "color-5", "foreground", CHAT_FG_5, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "color-6", "foreground", CHAT_FG_6, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "color-7", "foreground", CHAT_FG_7, NULL);
+	tag = gtk_text_buffer_create_tag(view_buffer, "color-8", "foreground", CHAT_FG_8, NULL);
 
 	return GTK_WIDGET(view);
 }
@@ -363,6 +358,7 @@ chat_set_tab(int index)
 }
 
 /*}}}*/
+
 
 /* TZ List functions {{{*/
 
@@ -547,6 +543,9 @@ tz_chat_start(const char const *data) {
 	clear_room_players_buffer();
 }
 
+
+/* CHAT Utils {{{ */
+
 bool
 send_raw(const char *data)
 {
@@ -652,6 +651,8 @@ insert_nick_to_entry(const char const *nick, int steel_private)
 
 	return false;
 }
+
+/* }}} */
 
 bool
 parse_and_add_system_message(const char *str)
@@ -846,13 +847,13 @@ parse_and_add_message(const char *str)
 	free(str_spaces);
 
 	// nickname
-	char tmp_color[4];
-	sprintf(tmp_color, "c%i", text_color_index+1);
+	char tmp_color[8];
+	sprintf(tmp_color, "color-%i", (str_hash(nick, 8) + 1));
 	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, nick, -1, "nickname", tmp_color, if_highlight_tag, NULL);
 	gtk_text_buffer_insert(msg_view_buffer, &iter, ": ", -1);
 
 	// message
-	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, message, -1, NULL);
+	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, message, -1, "message", NULL);
 
 	// scroll to last insert
 	msg_view_mark = gtk_text_buffer_create_mark(msg_view_buffer, NULL, &iter, false);

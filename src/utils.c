@@ -352,7 +352,7 @@ get_rank_num_from_ranks(const int rank_count)
 
 
 
-/* STRINGS */
+/* STRINGS {{{ */
 /* strdup: Возвращает копию строки, или NULL если не хватает памяти */
 char *
 strdup(const char const *str)
@@ -496,4 +496,18 @@ rep_substr(const char *str, const char *old, const char *new)
 	return ret;
 }
 
-/* vim: set fdm=marker ts=4 sw=4 tw=100 fo-=t ff=unix: */
+int
+str_hash(const char const *str, int hash_tablesize)
+{
+	unsigned n = 0;
+
+	for (n = 0; *str; str++) {
+		n = 31 * n + *str;
+	}
+
+	return n % hash_tablesize;
+}
+
+/* }}} */
+
+/* vim: set fdm=marker ts=4 sw=4 tw=100 fo-=t ff=unix ft=c: */
