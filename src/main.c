@@ -3,10 +3,10 @@
 #include <string.h>
 #include <glib.h>
 #include <gtk/gtk.h>
-#include <webkit/webkit.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+
 #include "general.h"
 #include "window.h"
 #include "flash.h"
@@ -34,8 +34,9 @@ int main(int argc, char **argv, char *envp[])
 #endif
 
 	const char *home_dir = g_getenv("HOME");
-	if (!home_dir)
+	if (!home_dir) {
 		home_dir = g_get_home_dir();
+	}
 
 	// parse arguments
 	if (!initArgs(argc, argv)) {
@@ -85,30 +86,17 @@ initArgs(const int argc, char *argv[])
 			printf("  --autologin, -l       Auto LogIn  nickname.\n");
 			printf("  --client-dir, -cd     TimeZero Client directory.\n");
 			printf("  --no-theme, -nt       Use system GTK+ theme.\n");
-			printf("  --auto-mine, -am      Use power Luke.\n");
 			printf("\n");
 			printf("\033[1m Extended options:\033[0m\n");
 			printf("  --version, -v         Show version info.\n");
 			printf("  --verbose, -V         Verbose mode.\n");
 			printf("\n");
 			printf(PRINT_VERSION);
-			return FALSE;
-		}
-		if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-V") == 0) {
-			verbose = TRUE;
-			continue;
+			return false;
 		}
 
-		if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
-			printf(PRINT_VERSION);
-			return FALSE;
-		}
 		if (strcmp(argv[i], "--full-screen") == 0 || strcmp(argv[i], "-f") == 0) {
-			fullscreen = TRUE;
-			continue;
-		}
-		if (strcmp(argv[i], "--no-theme") == 0 || strcmp(argv[i], "-nt") == 0) {
-			no_theme = TRUE;
+			fullscreen = true;
 			continue;
 		}
 		if (strcmp(argv[i], "--autologin") == 0 || strcmp(argv[i], "-l") == 0) {
@@ -133,9 +121,24 @@ initArgs(const int argc, char *argv[])
 				continue;
 			}
 		}
+		if (strcmp(argv[i], "--no-theme") == 0 || strcmp(argv[i], "-nt") == 0) {
+			no_theme = true;
+			continue;
+		}
+
+		if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
+			printf(PRINT_VERSION);
+			return false;
+		}
+		if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-V") == 0) {
+			verbose = true;
+			continue;
+		}
+
 		wlog("Unknown option '%s'. Ignored.\n", argv[i]);
 	}
-	return TRUE;
+
+	return true;
 }
 
 /* vim: set fdm=marker ts=4 sw=4 tw=100 fo-=t ff=unix: */

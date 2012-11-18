@@ -4,6 +4,7 @@
 #include <glib.h>
 #include "general.h"
 #include "events.h"
+#include "autologin.h"
 
 #include "utils.h"
 

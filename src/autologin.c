@@ -3,6 +3,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <json.h>
+
 #include "general.h"
 #include "window.h"
 #include "utils.h"
@@ -212,7 +213,7 @@ al_item_window_create(tzLogin *l)
 	GtkBox *vbox;
 
 	al_add_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	// если передан логин - редактирование
+	// если передан логин то редактирование
 	gtk_window_set_title(GTK_WINDOW(al_add_window), l ? _("Edit autologin item") : _("Add autologin item"));
 	gtk_window_set_position(GTK_WINDOW(al_add_window), GTK_WIN_POS_CENTER);
 	gtk_window_set_resizable(GTK_WINDOW(al_add_window), false);
@@ -311,7 +312,6 @@ al_add_item_window(GtkButton *b, gpointer user_data)
 	for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
 		if (al_list[i].login && strcmp(al_list[i].login, gtk_entry_get_text(login_entry)) == 0) {
 			wlog("Login exist. Choice new or remove old.");
-
 			return;
 		}
 	}

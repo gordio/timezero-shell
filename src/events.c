@@ -35,10 +35,10 @@ tag_time_cb(GtkTextTag *tag, GObject *o, GdkEvent *e, GtkTextIter *i, gpointer u
 			gtk_text_iter_free(i_start);
 			gtk_text_iter_free(i_end);
 
-			return TRUE;
+			return true;
 
 		default:
-			return FALSE;
+			return false;
 	}
 }
 
@@ -129,7 +129,7 @@ on_tag_event(GtkTextTag *tag, GObject *o, GdkEvent *e, const GtkTextIter *i, gpo
 		g_print("Some event...\n");
 		break;
 	}
-	return TRUE;
+	return true;
 }*/
 
 
@@ -192,7 +192,7 @@ chat_text_view_event_cb(GtkWidget *w, GdkEventMotion *event, GSList *tags)
 		gdk_window_set_cursor(win, NULL);
 	}
 
-	return FALSE;
+	return false;
 }
 
 bool
@@ -200,7 +200,7 @@ keypress_cb(GtkWidget *w, GdkEventKey *e, gpointer user_data)
 {
 	/*if (event->state == (GDK_CONTROL_MASK|GDK_SHIFT_MASK)) {
 		if (gdk_keyval_to_lower(event->keyval) == GDK_x) {
-			return TRUE;
+			return true;
 		}
 	}*/
 	if (e->state & GDK_MOD1_MASK) {
@@ -256,7 +256,7 @@ room_click_info_cb(GtkWidget *w, GdkEvent *e, gpointer data)
 bool
 nick_label_cb(GtkWidget *w, gchar *uri, gpointer user_data)
 {
-	insert_nick_to_entry(gtk_label_get_text(GTK_LABEL(w)), FALSE);
+	insert_nick_to_entry(gtk_label_get_text(GTK_LABEL(w)), false);
 	return true;
 }
 

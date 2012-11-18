@@ -1,15 +1,22 @@
 #!/usr/bin/make -f
 
+TZ_DIR   := "${HOME}/.timezero"
 PROJNAME := $(notdir $(PWD))
 SOURCES  := $(wildcard src/*.c)
 SOURCES  += $(wildcard src/*/*.c)
 OBJECTS  := $(SOURCES:.c=.o)
-TZ_DIR   := "${HOME}/.timezero"
+
+#_ver   := $(shell git shortlog | grep -E '^[ ]+\w+' | wc -l)
+_ver0   := $(shell git describe HEAD 2>/dev/null)
+_ver1   := $(shell git describe --tags HEAD 2>/dev/null)
+_ver2   := $(shell git rev-parse --verify --short HEAD 2>/dev/null)
+VERSION := $(or $(_ver0),$(_ver1),$(_ver2))
 
 CFLAGS  += `pkg-config --cflags gtk+-2.0 webkit-1.0 json` -std=c99
-CFLAGS  += -g -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -pedantic
-CFLAGS  += -DVERSION_EXT=\"c`git shortlog | grep -E '^[ ]+\w+' | wc -l`\"
+CFLAGS  += -g -Wall -Wextra  -pedantic
+CFLAGS  += -Wno-unused-function -Wno-unused-parameter
 CFLAGS  += -DENABLE_CLI_COLORS -DENABLE_NLS
+CFLAGS  += -DVERSION=\"$(VERSION)\"
 LDFLAGS += `pkg-config --libs gtk+-2.0 webkit-1.0 json`
 
 

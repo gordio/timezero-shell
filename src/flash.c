@@ -50,7 +50,7 @@ create_flash_frame()
 
 	webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
 	settings = webkit_web_settings_new();
-	user_agent = g_strconcat("TimeZero Linux Shell/", VERSION, " (X11; Linux; ru-ru)", NULL);
+	user_agent = "TimeZero Linux Shell/" VERSION " (X11; Linux; ru-ru)";
 
 	g_object_set(G_OBJECT(settings), "user-agent", user_agent, NULL);
 	g_object_set(G_OBJECT(settings), "auto-load-images", true, NULL);
@@ -92,7 +92,7 @@ pluginspage=\"http://www.macromedia.com/go/getflashplayer\">\
 	g_signal_connect(G_OBJECT(webView), "new-window-policy-decision-requested", G_CALLBACK(&open_url), webView);
 
 	//webkit_set_proxy("127.0.0.1", 8099, "", "");
-	free(user_agent);
+	/*free(user_agent);*/
 	free(strHTML);
 
 	return GTK_WIDGET(webView);
@@ -142,7 +142,7 @@ script_alert_cb(WebKitWebView *webView, WebKitWebFrame *frame, char *data, gpoin
 		tz_list_refresh(data);
 	} else if (g_str_has_prefix(data, "info,")) {
 		char *nick = strdup(data + 5);
-		insert_nick_to_entry(nick, TRUE);
+		insert_nick_to_entry(nick, true);
 		free(nick);
 	} else if (g_str_has_prefix(data, "Z,")) {
 		parse_and_add_system_message(data);

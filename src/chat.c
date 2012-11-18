@@ -208,8 +208,9 @@ chat_msg_view_new(void)
 	gtk_text_view_set_editable(view, false);
 	gtk_text_view_set_overwrite(view, false);
 	gtk_text_view_set_cursor_visible(view, false);
-	gtk_text_view_set_pixels_above_lines(view, 0);
-	gtk_text_view_set_pixels_below_lines(view, 0);
+	// TODO: Добавить все в настройки
+	gtk_text_view_set_pixels_above_lines(view, 1);
+	gtk_text_view_set_pixels_below_lines(view, 1);
 	gtk_text_view_set_pixels_inside_wrap(view, -2);
 	gtk_text_view_set_left_margin(view, 0);
 	gtk_text_view_set_indent(view, -160);
@@ -224,7 +225,7 @@ chat_msg_view_new(void)
 	g_signal_connect(G_OBJECT(tag), "event", G_CALLBACK(&tag_time_cb), view);
 	tags = g_slist_append(tags, tag);
 
-	tag = gtk_text_buffer_create_tag(viewBuffer, "nickname", "family", "monospace", "foreground", CHAT_NICK_COLOR, "weight", "bold", NULL);
+	tag = gtk_text_buffer_create_tag(viewBuffer, "nickname", "family", "monospace", "foreground", CHAT_NICK_COLOR, NULL);
 	g_signal_connect(G_OBJECT(tag), "event", G_CALLBACK(&tag_nick_cb), view);
 	tags = g_slist_append(tags, tag);
 
@@ -325,8 +326,9 @@ room_widget_redraw(void)
 		}
 	}
 
-	// FIXME: qsort very speedly, but all time random.
-	// Good choice for use on room Refresh. And input/delete without redraw.
+	// FIXME: qsort работает намного быстрее, но всегда по разному тасует
+	// Хорошо использовать для Refresh (при первом входе в комнату)
+	// и вставлять/удалять без полной пересортировки
 	// room_array_qsort_by_level(Room_player, 0, MAX_ROOM_NICKS-1);
 	room_array_sort_by_level(Room_player);
 	room_array_sort_by_level_by_rank(Room_player);
@@ -733,6 +735,7 @@ parse_and_add_message(const char *str)
 
 	bool self_message = false;
 	bool highlight = false;
+	char *if_highlight_tag = NULL;
 
 
 	vlog("Start parse input message");
@@ -762,11 +765,15 @@ parse_and_add_message(const char *str)
 	char *prvt_nick = g_strconcat("private [", current_player_name, "]", NULL);
 	char *to_nick = g_strconcat("to [", current_player_name, "]", NULL);
 
+	// FIXME: Хранить файл в конфиге, и играть альсой
 	if (!self_message && strstr(str, prvt_nick)) {
+		// private [...]
 		system("aplay private.wav &>/dev/null &");
 		highlight = true;
 	} else if (!self_message && strstr(str, to_nick)) {
+		// to [...]
 		system("aplay radio.wav &>/dev/null &");
+		highlight = true;
 	}
 
 	free(prvt_nick);
@@ -824,28 +831,28 @@ parse_and_add_message(const char *str)
 		gtk_text_buffer_insert(msg_view_buffer, &iter, "\n", -1);
 	}
 
-	// time
 	if (highlight) {
-		gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, time, -1, "time", "highlight", NULL);
-	} else {
-		gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, time, -1, "time", NULL);
+		if_highlight_tag = "highlight";
 	}
+
+	// time
+	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, time, -1, "time", if_highlight_tag, NULL);
 	
 
 	// nickname spaces
 	char *str_spaces = malloc(nick_spaces + 1); // +1 for space after time
 	memset(str_spaces, ' ', nick_spaces + 1);
-	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, str_spaces, nick_spaces + 1, "monospace", NULL);
+	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, str_spaces, nick_spaces + 1, "monospace", if_highlight_tag, NULL);
 	free(str_spaces);
 
 	// nickname
-	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, nick, -1, "nickname", NULL);
+	char tmp_color[4];
+	sprintf(tmp_color, "c%i", text_color_index+1);
+	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, nick, -1, "nickname", tmp_color, if_highlight_tag, NULL);
 	gtk_text_buffer_insert(msg_view_buffer, &iter, ": ", -1);
 
 	// message
-	char tmp_color[4];
-	sprintf(tmp_color, "c%i", text_color_index+1);
-	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, message, -1, tmp_color, NULL);
+	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, message, -1, NULL);
 
 	// scroll to last insert
 	msg_view_mark = gtk_text_buffer_create_mark(msg_view_buffer, NULL, &iter, false);
