@@ -43,10 +43,10 @@ static char *system_message_fmt[] = {
 	"открыла подарок от %s",
 	"запустил фейерверк %s",
 	"запустила фейерверк %s",
-	"Персонаж %s в данный момент не может общаться в чате",
-	"заразился вирусом X от %s",
-	"заразилась вирусом X от %s",
-	"Персонаж %s ищет вас при помощи локатора ",
+	"%sПерсонаж %s в данный момент не может общаться в чате",
+	"%s заразился вирусом X от %s",
+	"%s заразилась вирусом X от %s",
+	"Персонаж %s ищет вас при помощи локатора",
 	"использовал %s на персонажа %s",
 	"пройден квест %s",
 	"пройдена часть квеста %s",
@@ -715,8 +715,14 @@ parse_and_add_system_message(const char *str)
 	// "Z,000819ae:21:10\t11\t\tsinon_woolf"
 	if (6 != sscanf(str, "Z,%lx:%d:%d\t%i\t%[^\t]\t%[^\n]",
 				&hash, &hours, &minutes, &status_code, msg_arg1, msg_arg2)) {
-		elog("Message parse error: %s\n", str);
-		return false;
+		if (5 != sscanf(str, "Z,%lx:%d:%d\t%i\t\t%[^\n]",
+					&hash, &hours, &minutes, &status_code, msg_arg2)) {
+			elog("Message parse error: %s\n", str);
+			return false;
+		} else {
+			// мы же не заполнили, потому
+			memset(msg_arg1, '\0', 1);
+		}
 	}
 
 	// Check messages cache
