@@ -31,6 +31,42 @@ bool chatOn = true, chatRefresh = true;
 
 static bool in_building = false;
 
+// Системные сообщения
+static char *system_message_fmt[] = {
+	"послала воздушный поцелуй персонажу %s",
+	"бросил грязью в персонажа %s",
+	"преподнес букет цветов девушке %s",
+	"запретил общение в чате персонажу %s",
+	"запретила общение в чате персонажу %s",
+	"бросила грязью в персонажа %s",
+	"открыл подарок от %s",
+	"открыла подарок от %s",
+	"запустил фейерверк %s",
+	"запустила фейерверк %s",
+	"Персонаж %s в данный момент не может общаться в чате",
+	"заразился вирусом X от %s",
+	"заразилась вирусом X от %s",
+	"Персонаж %s ищет вас при помощи локатора ",
+	"использовал %s на персонажа %s",
+	"пройден квест %s",
+	"пройдена часть квеста %s",
+	"плеснул ядом в персонажа %s",
+	"бросил монетку персонажу %s",
+	"взят квеcт %s",
+	"квест %s провален",
+	"получены медные монеты: %s",
+	"получены перк-монеты: %s",
+	"получен перк: %s",
+	"получен опыт: %s",
+	"Входит %s",
+	"Уходит %s",
+	"%s метнул снежком в персонажа %s",
+	"Получен предмет: %s",
+	"признаётся в любви персонажу %s",
+	"выражает свои чувства персонажу %s",
+	"дарит миллион сердец персонажу %s"
+};
+
 #include "chat.h"
 
 // FIXME: Use undefined list for players in rppm
@@ -97,23 +133,23 @@ create_chat_frame()
 		gtk_container_add(GTK_CONTAINER(scroll), view);
 
 		switch (i) {
-			case MSG_VIEW_GENERAL:
+			case GENERAL:
 				label = gtk_label_new(_("General"));
 				break;
 
-			case MSG_VIEW_PRIVATE:
+			case PRIVATE:
 				label = gtk_label_new(_("Private"));
 				break;
 
-			case MSG_VIEW_CLAN:
+			case CLAN:
 				label = gtk_label_new(_("Clan"));
 				break;
 
-			case MSG_VIEW_ALLIANCE:
+			case ALLIANCE:
 				label = gtk_label_new(_("Alliance"));
 				break;
 
-			case MSG_VIEW_RADIO:
+			case RADIO:
 				label = gtk_label_new(_("Radio"));
 				break;
 
@@ -659,17 +695,25 @@ parse_and_add_system_message(const char *str)
 {
 	unsigned long hash = 0;
 	int status_code = 0;
-	char status_code_str[9];
 	int hours = 99, minutes = 99;
-	char time[6];
-	char text[MAX_CHAT_MESSAGE*2+1]; // Пока с запасом
+	char *msg_arg1, *msg_arg2;
 	char *message;
 
 	GtkTextIter iter;
-	GtkTextBuffer *msg_view_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(msg_view[MSG_VIEW_GENERAL]));
+	GtkTextBuffer *buffer;
+
+
+	msg_arg1 = malloc(1024); // Могут быть и ники персонажей, и название предметов
+	msg_arg2 = malloc(1024); // и прочее барахло. Лучше с запасом.
+	message = malloc(MAX_CHAT_MESSAGE*4); // с запасом
+
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(msg_view[GENERAL]));
+
 
 	// Parse
-	if (5 != sscanf(str, "Z,%lx:%d:%d\t%i\t%[^\n]", &hash, &hours, &minutes, &status_code, text)) {
+	// "Z,000819ae:21:10\t11\t\tsinon_woolf"
+	if (6 != sscanf(str, "Z,%lx:%d:%d\t%i\t%[^\t]\t%[^\n]",
+				&hash, &hours, &minutes, &status_code, msg_arg1, msg_arg2)) {
 		elog("Message parse error: %s\n", str);
 		return false;
 	}
@@ -682,37 +726,25 @@ parse_and_add_system_message(const char *str)
 		}
 	}
 
-	// FIXME: bug with "Z,000819ae:21:10\t11\t\tsinon_woolf"
-
-	switch (status_code) {
-		case 14:
-			message = g_strconcat("Вас просканировал персонаж: ", text, NULL);
-			break;
-
-		case 11:
-			message = g_strconcat("Персонаж ", text, " сейчас вне сети ", NULL);
-			break;
-
-		default:
-			sprintf(status_code_str, "%i", status_code);
-			message = g_strconcat("Системка #", status_code_str, " and:", text, NULL);
-	}
-
-	sprintf(time, "%.2i:%.2i", hours, minutes);
+	// Создаем сообщение
+	sprintf(message, system_message_fmt[status_code-1], msg_arg1, msg_arg2);
 
 	// Show message in text view
-	gtk_text_buffer_get_end_iter(msg_view_buffer, &iter);
+	gtk_text_buffer_get_end_iter(buffer, &iter);
 
-	if (gtk_text_buffer_get_char_count(msg_view_buffer) != 0) {
-		gtk_text_buffer_insert(msg_view_buffer, &iter, "\n", -1);
+	if (gtk_text_buffer_get_char_count(buffer) != 0) {
+		gtk_text_buffer_insert(buffer, &iter, "\n", -1);
 	}
 
-	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, time, -1, "time", NULL);
-	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, " ", -1, "monospace", NULL);
+	char time[7];
+	sprintf(time, "%.2i:%.2i ", hours, minutes);
 
-	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, message, -1, "system", NULL);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, time, -1, "time", "system", NULL);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, message, -1, "system", NULL);
 
-	// clear temp memory
+
+	free(msg_arg1);
+	free(msg_arg2);
 	free(message);
 
 	return true;
@@ -726,10 +758,10 @@ parse_and_add_message(const char *str)
 	int nick_spaces = 0;
 	GtkTextIter iter;
 	GtkWidget *view;
-	GtkTextBuffer *msg_view_buffer;
-	GtkTextMark *msg_view_mark;
+	GtkWidget *scroll;
+	GtkTextBuffer *buffer;
+	GtkTextMark *mark;
 
-	char time[6];
 	char nick[MAX_NICK_SIZE*2+1];       // *2 for utf8 and +1 for '\0'
 	char text[MAX_CHAT_MESSAGE*2+1];    // FIXME: Overflow (сообщения приходящие не ограниченны?)
 	char message[MAX_CHAT_MESSAGE*2+1]; // Add *5 for monkey fix problem
@@ -783,17 +815,28 @@ parse_and_add_message(const char *str)
 
 	if (strstr(str, "private [radio]")) {
 		rem_substr(message, "private [radio] ");
-		view = msg_view[MSG_VIEW_RADIO];
-	} else if (strstr(str, "private [clan]")) {
-		rem_substr(message, "private [clan] ");
-		view = msg_view[MSG_VIEW_CLAN];
-	} else if (strstr(str, "private [alliance]")) {
-		rem_substr(message, "private [alliance] ");
-		view = msg_view[MSG_VIEW_ALLIANCE];
-	} else if (strstr(str, "private [")) {
-		view = msg_view[MSG_VIEW_PRIVATE];
+		view = msg_view[RADIO];
+		scroll = gtk_widget_get_parent(msg_view[RADIO]);
 	} else {
-		view = msg_view[MSG_VIEW_GENERAL];
+		if (strstr(str, "private [clan]")) {
+			rem_substr(message, "private [clan] ");
+			view = msg_view[CLAN];
+			scroll = gtk_widget_get_parent(msg_view[CLAN]);
+		} else {
+			if (strstr(str, "private [alliance]")) {
+				rem_substr(message, "private [alliance] ");
+				view = msg_view[ALLIANCE];
+				scroll = gtk_widget_get_parent(msg_view[ALLIANCE]);
+			} else {
+				if (strstr(str, "private [")) {
+					view = msg_view[PRIVATE];
+					scroll = gtk_widget_get_parent(msg_view[PRIVATE]);
+				} else {
+					view = msg_view[GENERAL];
+					scroll = gtk_widget_get_parent(msg_view[GENERAL]);
+				}
+			}
+		}
 	}
 
 	// add hash to message cache
@@ -815,11 +858,8 @@ parse_and_add_message(const char *str)
 		//message_notify(nick, message);
 	//}
 
-	msg_view_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
-	gtk_text_buffer_get_end_iter(msg_view_buffer, &iter);
-
-	// make time message text
-	sprintf(time, "%.2i:%.2i", hours, minutes);
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
+	gtk_text_buffer_get_end_iter(buffer, &iter);
 
 	// find max nick white spaces
 	int nick_len = g_utf8_strlen(nick, -1);
@@ -828,38 +868,40 @@ parse_and_add_message(const char *str)
 	}
 
 	vlog("Insert message to chat");
-	if (gtk_text_buffer_get_char_count(msg_view_buffer) != 0) {
-		gtk_text_buffer_insert(msg_view_buffer, &iter, "\n", -1);
+	if (gtk_text_buffer_get_char_count(buffer) != 0) {
+		gtk_text_buffer_insert(buffer, &iter, "\n", -1);
 	}
 
 	if (highlight) {
 		if_highlight_tag = "highlight";
 	}
 
-	// time
-	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, time, -1, "time", if_highlight_tag, NULL);
+	// Time
+	char time[7];
+	sprintf(time, "%.2i:%.2i ", hours, minutes);
+
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, time, -1, "time", if_highlight_tag, NULL);
 	
 
-	// nickname spaces
-	char *str_spaces = malloc(nick_spaces + 1); // +1 for space after time
-	memset(str_spaces, ' ', nick_spaces + 1);
-	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, str_spaces, nick_spaces + 1, "monospace", if_highlight_tag, NULL);
-	free(str_spaces);
+	// Nickname
+	char *tmp_str = malloc(nick_spaces);
+	memset(tmp_str, ' ', nick_spaces);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, tmp_str, nick_spaces, "monospace", NULL);
+	free(tmp_str);
 
-	// nickname
 	char tmp_color[8];
 	sprintf(tmp_color, "color-%i", (str_hash(nick, 8) + 1));
-	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, nick, -1, "nickname", tmp_color, if_highlight_tag, NULL);
-	gtk_text_buffer_insert(msg_view_buffer, &iter, ": ", -1);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, nick, -1, "nickname", tmp_color, NULL);
+	gtk_text_buffer_insert(buffer, &iter, ": ", -1);
 
 	// message
-	gtk_text_buffer_insert_with_tags_by_name(msg_view_buffer, &iter, message, -1, "message", NULL);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, message, -1, "message", NULL);
 
 	// scroll to last insert
-	msg_view_mark = gtk_text_buffer_create_mark(msg_view_buffer, NULL, &iter, false);
-	if (msg_view_mark) {
-		gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(view), msg_view_mark);
-		gtk_text_buffer_delete_mark(msg_view_buffer, msg_view_mark);
+	mark = gtk_text_buffer_create_mark(buffer, NULL, &iter, false);
+	if (mark) {
+		gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(view), mark);
+		gtk_text_buffer_delete_mark(buffer, mark);
 	}
 
 	return true;
@@ -1159,15 +1201,15 @@ activate_msg_entry_cb(GtkWidget *w)
 	int cur_tab_indx = gtk_notebook_get_current_page(GTK_NOTEBOOK(tab_bar));
 
 	switch (cur_tab_indx) {
-		case MSG_VIEW_CLAN:
+		case CLAN:
 			msg = g_strconcat("private [clan] ", text, NULL);
 			break;
 
-		case MSG_VIEW_ALLIANCE:
+		case ALLIANCE:
 			msg = g_strconcat("private [alliance] ", text, NULL);
 			break;
 
-		case MSG_VIEW_RADIO:
+		case RADIO:
 			msg = g_strconcat("private [radio] ", text, NULL);
 			break;
 
