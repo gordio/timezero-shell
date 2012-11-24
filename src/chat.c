@@ -699,6 +699,7 @@ parse_and_add_system_message(const char *str)
 	char *msg_arg1, *msg_arg2;
 	char *message;
 
+	GtkWidget *view = msg_view[GENERAL];
 	GtkTextIter iter;
 	GtkTextBuffer *buffer;
 
@@ -707,7 +708,7 @@ parse_and_add_system_message(const char *str)
 	msg_arg2 = malloc(1024); // и прочее барахло. Лучше с запасом.
 	message = malloc(MAX_CHAT_MESSAGE*4); // с запасом
 
-	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(msg_view[GENERAL]));
+	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
 
 
 	// Parse
@@ -729,10 +730,17 @@ parse_and_add_system_message(const char *str)
 	// Создаем сообщение
 	sprintf(message, system_message_fmt[status_code-1], msg_arg1, msg_arg2);
 
+	bool autoscroll = false;
+	GtkWidget *scroll = gtk_widget_get_parent(view);
+	GtkAdjustment *a = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll));
+	if (adjustment_is_bottom(a)) {
+		autoscroll = true;
+	}
+
 	// Show message in text view
 	gtk_text_buffer_get_end_iter(buffer, &iter);
-
 	if (gtk_text_buffer_get_char_count(buffer) != 0) {
+		// это не первое сообщение, вставляем перевод на новую строку
 		gtk_text_buffer_insert(buffer, &iter, "\n", -1);
 	}
 
@@ -742,6 +750,9 @@ parse_and_add_system_message(const char *str)
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, time, -1, "time", "system", NULL);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, message, -1, "system", NULL);
 
+	// Cкролим в конец
+	if (autoscroll)
+		gtk_adjustment_set_value(a, a->upper);
 
 	free(msg_arg1);
 	free(msg_arg2);
@@ -758,9 +769,7 @@ parse_and_add_message(const char *str)
 	int nick_spaces = 0;
 	GtkTextIter iter;
 	GtkWidget *view;
-	GtkWidget *scroll;
 	GtkTextBuffer *buffer;
-	GtkTextMark *mark;
 
 	char nick[MAX_NICK_SIZE*2+1];       // *2 for utf8 and +1 for '\0'
 	char text[MAX_CHAT_MESSAGE*2+1];    // FIXME: Overflow (сообщения приходящие не ограниченны?)
@@ -816,24 +825,19 @@ parse_and_add_message(const char *str)
 	if (strstr(str, "private [radio]")) {
 		rem_substr(message, "private [radio] ");
 		view = msg_view[RADIO];
-		scroll = gtk_widget_get_parent(msg_view[RADIO]);
 	} else {
 		if (strstr(str, "private [clan]")) {
 			rem_substr(message, "private [clan] ");
 			view = msg_view[CLAN];
-			scroll = gtk_widget_get_parent(msg_view[CLAN]);
 		} else {
 			if (strstr(str, "private [alliance]")) {
 				rem_substr(message, "private [alliance] ");
 				view = msg_view[ALLIANCE];
-				scroll = gtk_widget_get_parent(msg_view[ALLIANCE]);
 			} else {
 				if (strstr(str, "private [")) {
 					view = msg_view[PRIVATE];
-					scroll = gtk_widget_get_parent(msg_view[PRIVATE]);
 				} else {
 					view = msg_view[GENERAL];
-					scroll = gtk_widget_get_parent(msg_view[GENERAL]);
 				}
 			}
 		}
@@ -854,10 +858,6 @@ parse_and_add_message(const char *str)
 	}
 
 
-	//if (!gtk_window_is_active(GTK_WINDOW(window))) {
-		//message_notify(nick, message);
-	//}
-
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
 	gtk_text_buffer_get_end_iter(buffer, &iter);
 
@@ -876,14 +876,20 @@ parse_and_add_message(const char *str)
 		if_highlight_tag = "highlight";
 	}
 
-	// Time
+	bool autoscroll = false;
+	GtkWidget *scroll = gtk_widget_get_parent(view);
+	GtkAdjustment *a = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll));
+	if (adjustment_is_bottom(a)) {
+		autoscroll = true;
+	}
+
+	// Время
 	char time[7];
 	sprintf(time, "%.2i:%.2i ", hours, minutes);
 
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, time, -1, "time", if_highlight_tag, NULL);
 	
-
-	// Nickname
+	// Никнейм
 	char *tmp_str = malloc(nick_spaces);
 	memset(tmp_str, ' ', nick_spaces);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, tmp_str, nick_spaces, "monospace", NULL);
@@ -894,15 +900,12 @@ parse_and_add_message(const char *str)
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, nick, -1, "nickname", tmp_color, NULL);
 	gtk_text_buffer_insert(buffer, &iter, ": ", -1);
 
-	// message
+	// Сообщение
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, message, -1, "message", NULL);
 
-	// scroll to last insert
-	mark = gtk_text_buffer_create_mark(buffer, NULL, &iter, false);
-	if (mark) {
-		gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(view), mark);
-		gtk_text_buffer_delete_mark(buffer, mark);
-	}
+	// скролим в конец
+	if (autoscroll)
+		gtk_adjustment_set_value(a, a->upper);
 
 	return true;
 }

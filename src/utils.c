@@ -126,7 +126,7 @@ escape_str(char *data)
 }
 
 #define MEM_TMP 8192
-/* GTK */
+/* GTK  {{{ */
 /* create_nick_box: Создает виджет игрока (для автологина) */
 GtkWidget *
 al_list_widget_create(tzLogin *player)
@@ -321,6 +321,16 @@ list_nickbox_create(tzPlayer *p)
 	return nick_box;
 }
 
+// Истина если скролбар в конце
+bool
+adjustment_is_bottom(GtkAdjustment *a)
+{
+	double lower = gtk_adjustment_get_lower(a);
+	double upper = gtk_adjustment_get_upper(a) - gtk_adjustment_get_page_size(a) + lower;
+	double value = gtk_adjustment_get_value(a);
+
+	return (value == upper) ? true : false;
+}
 
 // Добавляет изображение к кнопке
 void
@@ -334,6 +344,7 @@ gtk_button_add_image(GtkButton *button, char *image_path)
 	gtk_button_set_image(button, image);
 }
 
+/* }}} */
 
 // Find rank index
 int
@@ -349,8 +360,6 @@ get_rank_num_from_ranks(const int rank_count)
 
 	return countof(rank) + 1;
 }
-
-
 
 /* STRINGS {{{ */
 /* strdup: Возвращает копию строки, или NULL если не хватает памяти */

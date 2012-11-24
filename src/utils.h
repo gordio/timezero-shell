@@ -9,6 +9,7 @@
 GtkWidget * al_list_widget_create();
 GtkWidget * list_nickbox_create();
 void gtk_button_add_image(GtkButton *button, char *image_path);
+bool adjustment_is_bottom(GtkAdjustment *a);
 
 int get_rank_num_from_ranks();
 
