@@ -58,6 +58,7 @@ void tz_message_add(const char const *data);
 
 void show_system_msg();
 
+void chat_set_tab(int index);
 bool insert_nick_to_entry();
 bool insert_to_entry();
 

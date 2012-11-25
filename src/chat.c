@@ -898,12 +898,12 @@ parse_and_add_message(const char *str)
 	// Никнейм
 	char *tmp_str = malloc(nick_spaces);
 	memset(tmp_str, ' ', nick_spaces);
-	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, tmp_str, nick_spaces, "monospace", NULL);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, tmp_str, nick_spaces, "monospace", if_highlight_tag, NULL);
 	free(tmp_str);
 
 	char tmp_color[8];
 	sprintf(tmp_color, "color-%i", (str_hash(nick, 8) + 1));
-	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, nick, -1, "nickname", tmp_color, NULL);
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, nick, -1, "nickname", tmp_color, if_highlight_tag, NULL);
 	gtk_text_buffer_insert(buffer, &iter, ": ", -1);
 
 	// Сообщение
