@@ -9,8 +9,10 @@
 
 // Должен быть минимум 1 элемент
 Conf CONF_DEF[] = {
-	{"window.save_position", "1", NULL},
-	{"window.width", "1004", NULL}, // MIN_WINDOW_WIDTH
+	{"window.pos_method", "save", NULL}, // save or any (for save)
+	{"window.top", "-1", NULL},
+	{"window.left", "-1", NULL},
+	{"window.width", "1004", NULL},
 	{"window.height", "650", NULL},
 	{"flash.fullscreen_height", "600", NULL},
 	{"flash.windowed_height", "200", NULL},
@@ -135,15 +137,26 @@ conf_save()
 	Conf *cur = &CONF; // глобальный конфиг
 	unsigned int conf_def_length = sizeof(CONF_DEF)/sizeof(Conf);
 
+	// Такая магия нужна, дабы отбросить дефолтные значения из сохраняемого файла
+	bool def_value; // запоминаем если это дефолт
+
 	while (cur) {
-		// сохраняем только не совпадающие с дефолтом значения
+		def_value = false;
+		// перебираем все дефолтные значения
 		for (unsigned int i = 0; i < conf_def_length; i++) {
-			if (strcmp(cur->name, CONF_DEF[i].name) == 0 &&
-					strcmp(cur->value, CONF_DEF[i].value) != 0) {
-				json_object_object_add(root, cur->name, json_object_new_string(cur->value));
-				continue;
+			if (strcmp(cur->name, CONF_DEF[i].name) == 0) {
+				if (strcmp(cur->value, CONF_DEF[i].value) == 0) {
+					def_value = true;
+				}
 			}
 		}
+
+		// сохраняем только не совпадающие с дефолтом значения
+		if (!def_value) {
+			json_object_object_add(root, cur->name, json_object_new_string(cur->value));
+		}
+
+		// переходим к следующему элементу
 		cur = cur->next;
 	}
 
