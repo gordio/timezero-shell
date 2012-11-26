@@ -101,8 +101,7 @@ al_window_create(void)
 	al_list_load();
 	al_list_buttons_redraw();
 
-	g_signal_connect(G_OBJECT(window), "check-resize", G_CALLBACK(&al_move_cb), NULL);
-	// g_signal_connect(G_OBJECT(window), "event", G_CALLBACK(&al_move_cb), NULL);
+	g_signal_connect(G_OBJECT(window), "event", G_CALLBACK(&al_move_cb), NULL);
 
 	// check automatic logon with autologin
 	if (default_autologin) {
@@ -137,9 +136,9 @@ al_window_show(void)
 
 	if (al_window) {
 		al_list_buttons_redraw();
-		al_window_move();
 		gtk_widget_show_all(al_window);
 	}
+	al_window_move();
 }
 
 void
@@ -654,32 +653,36 @@ al_list_save(void)
 static void
 al_window_move(void)
 {
-	vlog("Move autologin window");
+	if (al_window && gtk_widget_get_visible(al_window)) {
+		vlog("Move autologin window");
 
-	int root_x, root_y, root_w, root_h;
-	int x, y, w, h;
+		int root_x, root_y, root_w, root_h;
+		int x, y, w, h;
 
-	gtk_window_get_position(GTK_WINDOW(window), &root_x, &root_y);
-	gtk_window_get_size(GTK_WINDOW(window), &root_w, &root_h);
-	gtk_window_get_size(GTK_WINDOW(al_window), &w, &h);
+		gtk_window_get_position(GTK_WINDOW(window), &root_x, &root_y);
+		gtk_window_get_size(GTK_WINDOW(window), &root_w, &root_h);
+		gtk_window_get_size(GTK_WINDOW(al_window), &w, &h);
 
-	x = root_x;
-	y = root_y;
-	y += root_h / 2; // window center
-	y -= h / 2;      // login window center
+		x = root_x;
+		y = root_y;
+		y += root_h / 2; // window center
+		y -= h / 2;      // login window center
 
-	gtk_window_move(GTK_WINDOW(al_window), x, y);
+		gtk_window_move(GTK_WINDOW(al_window), x, y);
+	}
 }
 
 static bool
-al_move_cb(void)
+al_move_cb(GtkWidget *w, GdkEvent *e, gpointer p)
 {
-	if (gtk_widget_get_visible(al_window)) {
-		al_window_move();
-	}
+	switch (e->type) {
+		case GDK_CONFIGURE:
+			al_window_move();
+			return false;
 
-	// false — move event to next function
-	return false;
+		default:
+			return false;
+	}
 }
 
 static void
