@@ -22,6 +22,7 @@ void al_window_show();
 void al_window_hide();
 
 bool al_list_update_by_player();
+void al_list_print();
 
 
 #endif

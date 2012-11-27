@@ -47,6 +47,17 @@ static void window_add_item_close_cb();
 
 
 void
+al_list_print(void)
+{
+	al_list_load();
+	for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
+		if (al_list[i].login) {
+			printf("%s\n", al_list[i].login);
+		}
+	}
+}
+
+void
 al_window_create(void)
 {
 	vlog("Create autologin window.");
@@ -103,7 +114,7 @@ al_window_create(void)
 
 	g_signal_connect(G_OBJECT(window), "event", G_CALLBACK(&al_move_cb), NULL);
 
-	// check automatic logon with autologin
+	// Войти сразу же, если указан логин
 	if (default_autologin) {
 		for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS && al_list[i].login; i++) {
 			// create both strings lovercase

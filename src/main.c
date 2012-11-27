@@ -16,7 +16,7 @@
 
 const char *tz_client_dir;
 
-bool verbose = false, fullscreen = false, no_theme = false;
+bool verbose = false, fullscreen = false, no_theme = false, al_print = false;
 char *default_autologin;
 
 char *tz_file_path = NULL;
@@ -42,8 +42,7 @@ int main(int argc, char **argv, char *envp[])
 
 	// Обрабатываем опции
 	if (!initArgs(argc, argv)) {
-		elog(_("Undefuined error in arguments."));
-		return -1;
+		return 0;
 	}
 
 	// Находим TZ директорию
@@ -55,6 +54,11 @@ int main(int argc, char **argv, char *envp[])
 	if (chdir(tz_client_dir) == -1) {
 		elog(_("Can't change work directory to: %s"), tz_client_dir);
 		return -1;
+	}
+
+	if (al_print) {
+		al_list_print();
+		return 0;
 	}
 
 	// Инициализируем конфиг (дефолтом)
@@ -94,14 +98,15 @@ initArgs(const int argc, char *argv[])
 			printf("  %s --full-screen --autologin \"Nick Name\"\n", argv[0]);
 			printf("\n");
 			printf("\033[1m Options:\033[0m\n");
-			printf("  --full-screen, -f     Start in full screen mode.\n");
-			printf("  --autologin, -l       Auto LogIn  nickname.\n");
-			printf("  --client-dir, -cd     TimeZero Client directory.\n");
-			printf("  --no-theme, -nt       Use system GTK+ theme.\n");
+			printf("  --full-screen, -f      Start in full screen mode\n");
+			printf("  --client-dir, -cd      TimeZero Client directory\n");
+			printf("  --no-theme, -nt        Use system GTK+ theme\n");
+			printf("  --al-login, -l         Login with nickname\n");
+			printf("  --al-list, -ll         List Autologin items\n");
 			printf("\n");
 			printf("\033[1m Extended options:\033[0m\n");
-			printf("  --version, -v         Show version info.\n");
-			printf("  --verbose, -V         Verbose mode.\n");
+			printf("  --version, -v          Show version info\n");
+			printf("  --verbose, -V          Verbose mode\n");
 			printf("\n");
 			printf(PRINT_VERSION);
 			return false;
@@ -111,7 +116,11 @@ initArgs(const int argc, char *argv[])
 			fullscreen = true;
 			continue;
 		}
-		if (strcmp(argv[i], "--autologin") == 0 || strcmp(argv[i], "-l") == 0) {
+		if (strcmp(argv[i], "--al-list") == 0 || strcmp(argv[i], "-ll") == 0) {
+			al_print = true;
+			continue;
+		}
+		if (strcmp(argv[i], "--al-login") == 0 || strcmp(argv[i], "-l") == 0) {
 			i++;
 			if (i < argc) {
 				default_autologin = g_strdup(argv[i]);
