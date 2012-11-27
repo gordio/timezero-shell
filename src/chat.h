@@ -44,7 +44,6 @@ extern bool in_building;
 
 
 GtkWidget * create_chat_frame();
-void recreate_cmd_popup_menu();
 bool parse_and_add_message();
 bool parse_and_add_system_message();
 void chat_list_nick_add();
@@ -56,7 +55,8 @@ void tz_list_add(const char const *data, bool disable_refresh);
 void tz_list_remove(const char const *data);
 void tz_message_add(const char const *data);
 
-void show_system_msg();
+void update_cmd();
+void update_cmd_menu(void);
 
 void chat_set_tab(int index);
 bool insert_nick_to_entry();

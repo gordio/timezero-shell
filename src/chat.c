@@ -24,8 +24,7 @@ GtkWidget *room_box;
 GtkWidget *room_label_location, *room_label_building;
 
 
-static GtkWidget *cmdMenu;
-static char *last_cmd_str;
+static GtkWidget *cmd_menu;
 static char *current_player_name;
 bool chatOn = true, chatRefresh = true;
 
@@ -96,8 +95,7 @@ static bool clear_cb();
 void room_label_cb();
 
 
-/* GTK Widgets {{{ */
-
+/* Создание виджетов {{{ */
 GtkWidget *
 create_chat_frame()
 {
@@ -161,6 +159,7 @@ create_chat_frame()
 		gtk_notebook_append_page(GTK_NOTEBOOK(tab_bar), scroll, label);
 		msg_view[i] = view;
 	}
+
 
 	scroll = create_room_list_widget();
 	gtk_paned_pack2(GTK_PANED(chat_text_box), GTK_WIDGET(scroll), false, false);
@@ -344,6 +343,22 @@ create_room_list_widget(void)
 	return scroll;
 }
 
+/*}}}*/
+
+/* Chat utils {{{*/
+void
+chat_set_tab(int index)
+{
+	gtk_notebook_set_current_page(GTK_NOTEBOOK(tab_bar), index - 1);
+}
+int
+chat_get_tab(void)
+{
+	return gtk_notebook_get_current_page(GTK_NOTEBOOK(tab_bar)) + 1;
+}
+/* }}} */
+
+/* TZ List functions {{{*/
 void
 room_widget_redraw(void)
 {
@@ -386,17 +401,6 @@ room_widget_redraw(void)
 
 	return;
 }
-
-void
-chat_set_tab(int index)
-{
-	gtk_notebook_set_current_page(GTK_NOTEBOOK(tab_bar), index-1);
-}
-
-/*}}}*/
-
-
-/* TZ List functions {{{*/
 
 static tzPlayer *
 get_player_or_exist(char *nick)
@@ -559,7 +563,6 @@ tz_list_refresh(const char const *data)
 		gtk_widget_hide(room_label_building);
 	}
 }
-
 /*}}}*/
 
 void
@@ -581,7 +584,6 @@ tz_chat_start(const char const *data) {
 
 
 /* CHAT Utils {{{ */
-
 bool
 send_raw(const char *data)
 {
@@ -712,7 +714,6 @@ parse_and_add_system_message(const char *str)
 
 
 	// Parse
-	// "Z,000819ae:21:10\t11\t\tsinon_woolf"
 	if (6 != sscanf(str, "Z,%lx:%d:%d\t%i\t%[^\t]\t%[^\n]",
 				&hash, &hours, &minutes, &status_code, msg_arg1, msg_arg2)) {
 		if (5 != sscanf(str, "Z,%lx:%d:%d\t%i\t\t%[^\n]",
@@ -920,31 +921,32 @@ void
 setChatState(int state)
 {
 	// check before set
-	#ifndef gtk_widget_set_sensitive
-	#define gtk_widget_set_sensitive(w, s) if (gtk_widget_is_sensitive(w) != s) { \
+	#ifndef gtk_widget_sensitive
+	#define gtk_widget_sensitive(w, s) if (gtk_widget_is_sensitive(w) != s) { \
 		gtk_widget_set_sensitive(w, s); \
 	}
 	#endif
 
 	if (state == CHAT_FULL_OFF) {
-		gtk_widget_set_sensitive(GTK_WIDGET(msg_entry), false);
-		gtk_widget_set_sensitive(button_cmd, false);
-		gtk_widget_set_sensitive(button_smiles, false);
-		gtk_widget_set_sensitive(button_translit, false);
+		gtk_widget_sensitive(GTK_WIDGET(msg_entry), false);
+		gtk_widget_sensitive(button_cmd, false);
+		gtk_widget_sensitive(button_smiles, false);
+		gtk_widget_sensitive(button_translit, false);
 	}
 	if (state == CHAT_ON) {
 		chatOn = true;
-		gtk_widget_set_sensitive(button_smiles, true);
-		// FIXME: Don't implemented translit
+		// FIXME: Don't implemented
+		//gtk_widget_sensitive(button_smiles, true);
 		//gtk_widget_set_sensitive(button_translit), true);
-		gtk_widget_set_sensitive(GTK_WIDGET(msg_entry), true);
-		gtk_widget_set_sensitive(button_cmd, true);
+		gtk_widget_sensitive(GTK_WIDGET(msg_entry), true);
+		gtk_widget_sensitive(button_cmd, true);
+
 		if (!chatRefresh) {
 			send_raw("//refreshoff");
 		}
 	} else if (state == CHAT_OFF) {
 		chatOn = false;
-		gtk_widget_set_sensitive(button_smiles, false);
+		gtk_widget_sensitive(button_smiles, false);
 		//gtk_widget_set_sensitive(button_translit), false);
 		clear_room_players_buffer();
 	} else if (state == CHAT_REFRESH_OFF) {
@@ -956,36 +958,39 @@ setChatState(int state)
 	}
 
 	room_widget_redraw();
-	recreate_cmd_popup_menu(NULL);
+	update_cmd_menu();
 }
 
 // CHAT MENU {{{
+bool trade = false, snow = false, coin = false, flower = false, flower2 = false;
+bool flower3 = false, venom = false, love = false, love2 = false, love3 = false;
+bool dirt = false, clan = false, alliance = false, radio = false, list = false;
+bool kiss = false, kiss2 = false, kiss3 = false, battle = false;
+
+static char *last_cmd_str = NULL;
 void
-recreate_cmd_popup_menu(const char *cmd_str)
+update_cmd(const char *cmd_str)
 {
-	// FIXME: Уже и не помню. Что за бред?
-	if (!cmd_str) {
-		if (last_cmd_str) {
-			cmd_str = last_cmd_str;
+	// запоминаем последнюю команду и не перерисовываем если нет необходимости
+	if (last_cmd_str) {
+		if (strcmp(last_cmd_str, cmd_str) != 0) {
+			if (last_cmd_str) {
+				free(last_cmd_str);
+			}
+			last_cmd_str = strdup(cmd_str);
 		} else {
 			return;
 		}
-	}
-
-	if (last_cmd_str != cmd_str) {
-		if (last_cmd_str) {
-			free(last_cmd_str);
-		}
+	} else {
 		last_cmd_str = strdup(cmd_str);
 	}
 
-	GtkWidget *menu_item;
-
-	cmdMenu = gtk_menu_new();
-	gtk_menu_set_reserve_toggle_size(GTK_MENU(cmdMenu), false);
+	trade = false; snow = false; coin = false; flower = false; flower2 = false;
+	flower3 = false; venom = false; love = false; love2 = false; love3 = false;
+	dirt = false; clan = false; alliance = false; radio = false; list = false;
+	kiss = false; kiss2 = false; kiss3 = false; battle = false;
 
 	// сбрасываем значения и скрываем вкладки
-	bool trade = false, snow = false, coin = false, flower = false, flower2 = false, flower3 = false, venom = false, love = false, love2 = false, love3 = false, dirt = false, clan = false, alliance = false, radio = false, list = false, kiss = false, kiss2 = false, kiss3 = false, battle = false;
 
 	char *tmp = strdup(cmd_str);
 	char *pch = NULL;
@@ -993,204 +998,198 @@ recreate_cmd_popup_menu(const char *cmd_str)
 	pch = strtok(tmp, ",");
 
 	while (pch && pch != '\0') {
-/* cmd trade snow coin flower flower2 flower3 battle venom love love2 love3 clan alliance list radio */
-		if (g_ascii_strcasecmp(pch, "trade") == 0) {
+		if (strcmp(pch, "trade") == 0) {
 			trade = true;
-		}
-		if (g_ascii_strcasecmp(pch, "snow") == 0) {
+		} else if (strcmp(pch, "snow") == 0) {
 			snow = true;
-		}
-		if (g_ascii_strcasecmp(pch, "dirt") == 0) {
+		} else if (strcmp(pch, "dirt") == 0) {
 			dirt = true;
-		}
-		if (g_ascii_strcasecmp(pch, "coin") == 0) {
+		} else if (strcmp(pch, "coin") == 0) {
 			coin = true;
-		}
-		if (g_ascii_strcasecmp(pch, "flower") == 0) {
+		} else if (strcmp(pch, "flower") == 0) {
 			flower = true;
-		}
-		if (g_ascii_strcasecmp(pch, "flower2") == 0) {
+		} else if (strcmp(pch, "flower2") == 0) {
 			flower2 = true;
-		}
-		if (g_ascii_strcasecmp(pch, "flower3") == 0) {
+		} else if (strcmp(pch, "flower3") == 0) {
 			flower3 = true;
-		}
-		if (g_ascii_strcasecmp(pch, "battle") == 0) {
+		} else if (strcmp(pch, "battle") == 0) {
 			battle = true;
-		}
-		if (g_ascii_strcasecmp(pch, "venom") == 0) {
+		} else if (strcmp(pch, "venom") == 0) {
 			venom = true;
-		}
-		if (g_ascii_strcasecmp(pch, "kiss") == 0) {
+		} else if (strcmp(pch, "kiss") == 0) {
 			kiss = true;
-		}
-		if (g_ascii_strcasecmp(pch, "kiss2") == 0) {
+		} else if (strcmp(pch, "kiss2") == 0) {
 			kiss2 = true;
-		}
-		if (g_ascii_strcasecmp(pch, "kiss3") == 0) {
+		} else if (strcmp(pch, "kiss3") == 0) {
 			kiss3 = true;
-		}
-		if (g_ascii_strcasecmp(pch, "love") == 0) {
+		} else if (strcmp(pch, "love") == 0) {
 			love = true;
-		}
-		if (g_ascii_strcasecmp(pch, "love2") == 0) {
+		} else if (strcmp(pch, "love2") == 0) {
 			love2 = true;
-		}
-		if (g_ascii_strcasecmp(pch, "love3") == 0) {
+		} else if (strcmp(pch, "love3") == 0) {
 			love3 = true;
-		}
-		if (g_ascii_strcasecmp(pch, "clan") == 0) {
+		} else if (strcmp(pch, "clan") == 0) {
 			clan = true;
-		}
-		if (g_ascii_strcasecmp(pch, "alliance") == 0) {
+		} else if (strcmp(pch, "alliance") == 0) {
 			alliance = true;
-		}
-		if (g_ascii_strcasecmp(pch, "radio") == 0) {
+		} else if (strcmp(pch, "radio") == 0) {
 			radio = true;
-		}
-		if (g_ascii_strcasecmp(pch, "list") == 0) {
+		} else if (strcmp(pch, "list") == 0) {
 			list = true;
+		} else {
+			ilog("Not supported command: '%s'", pch);
 		}
+		
 		pch = strtok(NULL, ",");
 	}
+	g_free(tmp);
+
+	update_cmd_menu();
+}
+
+void
+update_cmd_menu(void)
+{
+	GtkWidget *menu_item;
+
+	if (cmd_menu) {
+		gtk_widget_destroy(cmd_menu);
+	}
+	cmd_menu = gtk_menu_new();
+	gtk_menu_set_reserve_toggle_size(GTK_MENU(cmd_menu), false);
 
 	if (chatOn) {
-		gtk_menu_set_title(GTK_MENU(cmdMenu), "CMD");
+		gtk_menu_set_title(GTK_MENU(cmd_menu), "CMD");
 		menu_item = gtk_menu_item_new_with_label("//stop - выключает чат");
-		gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+		gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 		g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(send_raw), "//stop");
 	} else {
 		menu_item = gtk_menu_item_new_with_label("//start - включить чат");
-		gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+		gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 		g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(send_raw), "//start");
 	}
 
 	if (chatOn) {
 		if (chatRefresh) {
 			menu_item = gtk_menu_item_new_with_label("//refreshoff - выключает обновление списка людей в локации");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(setChatState), GINT_TO_POINTER(CHAT_REFRESH_OFF));
 		} else {
 			menu_item = gtk_menu_item_new_with_label("//refreshon - включает обновление списка людей в локации");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(setChatState), GINT_TO_POINTER(CHAT_REFRESH_ON));
 		}
 
-		menu_item = gtk_menu_item_new_with_label("//ping - узнать время отклика сервера");
-		gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
-		g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(send_raw), "//ping");
-
 		menu_item = gtk_menu_item_new_with_label("//clear - очистить окно");
-		gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+		gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 		g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(clear_cb), NULL);
 
 		menu_item = gtk_menu_item_new_with_label("to [] //info - открыть информацию об этом персонаже");
-		gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+		gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 		g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//info");
 
 		if (trade) {
 			menu_item = gtk_menu_item_new_with_label("to [] //trade - предложить этому персонажу обмен");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//trade");
 		}
 
 		if (kiss) {
 			menu_item = gtk_menu_item_new_with_label("to [] //kiss - послать воздушный поцелуй");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//kiss");
 		}
 
 		if (kiss2) {
 			menu_item = gtk_menu_item_new_with_label("to [] //kiss2 - другой вариант воздушного поцелу");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//kiss2");
 		}
 
 		if (kiss3) {
 			menu_item = gtk_menu_item_new_with_label("to [] //kiss3 - другой вариант воздушного поцелу");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//kiss3");
 		}
 
 		if (flower) {
 			menu_item = gtk_menu_item_new_with_label("to [] //flower - послать девушке букет роз");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//flower");
 		}
 
 		if (flower2) {
 			menu_item = gtk_menu_item_new_with_label("to [] //flower2 - послать девушке букет колокольчиков");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//flower2");
 		}
 
 		if (flower3) {
 			menu_item = gtk_menu_item_new_with_label("to [] //flower3 - послать девушке букет ромашек");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//flower3");
 		}
 
 		if (coin) {
 			menu_item = gtk_menu_item_new_with_label("to [] //coin - бросить медную монету");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//coin");
 		}
 
 		if (dirt) {
 			menu_item = gtk_menu_item_new_with_label("to [] //dirt - бросить грязью");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//dirt");
 		}
 
 		if (venom) {
 			menu_item = gtk_menu_item_new_with_label("to [] //venom - облить ядом");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//venom");
 		}
 
 		if (snow) {
 			menu_item = gtk_menu_item_new_with_label("to [] //snow - бросить снежком");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//snow");
 		}
 
 		if (clan) {
-			menu_item = gtk_menu_item_new_with_label("private [clan] - Написать в клан");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
-			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_start_entry), "private [clan] ");
-			// XXX: Отобразить удалить вкладку
+			//menu_item = gtk_menu_item_new_with_label("private [clan] - Написать в клан");
+			//gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
+			//g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_start_entry), "private [clan] ");
 		}
+		
 
 		if (alliance) {
-			menu_item = gtk_menu_item_new_with_label("private [alliance] - Написать в альянс");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
-			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_start_entry), "private [alliance] ");
-			// XXX: Отобразить удалить вкладку
+			//menu_item = gtk_menu_item_new_with_label("private [alliance] - Написать в альянс");
+			//gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
+			//g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_start_entry), "private [alliance] ");
 		}
 
 		if (radio) {
-			menu_item = gtk_menu_item_new_with_label("private [radio] - Написать в радиоволну");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
-			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_start_entry), "private [radio] ");
-			// XXX: Отобразить удалить вкладку
+			//menu_item = gtk_menu_item_new_with_label("private [radio] - Написать в радиоволну");
+			//gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
+			//g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_start_entry), "private [radio] ");
 		}
 
 		if (battle) {
 			menu_item = gtk_menu_item_new_with_label("//battle - напасть на монстров");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(send_raw), "//battle");
 		}
 
 		if (list) {
 			menu_item = gtk_menu_item_new_with_label("//list - список участников радиоволны");
-			gtk_menu_shell_append(GTK_MENU_SHELL(cmdMenu), menu_item);
+			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(send_raw), "//list");
 		}
 	}
 
-	g_free(tmp);
-	gtk_widget_show_all(cmdMenu);
+	gtk_widget_show_all(cmd_menu);
 }
+
+
 // }}}
 
 /* CALLBACKS {{{ */
@@ -1241,17 +1240,28 @@ activate_msg_entry_cb(GtkWidget *w)
 static bool
 press_smiles_cb(GtkWidget *w)
 {
-	g_debug("TODO Event: Smiles.");
-
+	// TODO: Написать окошко смайликов
 	return false;
 }
 
+static void
+menu_pos_func(GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer p)
+{
+	int widget_x, widget_y, window_x, window_y;
+	gdk_window_get_position(gtk_widget_get_window(p), &window_x, &window_y);
+	gtk_widget_translate_coordinates(GTK_WIDGET(p), gtk_widget_get_toplevel(GTK_WIDGET(p)), 0, 0, &widget_x, &widget_y);
+
+	GtkRequisition req;
+	gtk_widget_size_request(GTK_WIDGET(menu), &req);
+	*x = widget_x + window_x - req.width;
+	*y = widget_y + window_y - req.height;
+	*push_in = true;
+}
 static bool
 press_cmd_cb(GtkWidget *w, GdkEvent *e)
 {
-	if (cmdMenu) {
-		// create_cmdMenu();
-		gtk_menu_popup(GTK_MENU(cmdMenu), NULL, NULL, NULL, NULL, 2, 0);
+	if (cmd_menu) {
+		gtk_menu_popup(GTK_MENU(cmd_menu), NULL, NULL, &menu_pos_func, w, 2, 0);
 	} else {
 		elog("Don't exist info about commands. Try latter or report to developer.");
 	}
@@ -1262,7 +1272,10 @@ press_cmd_cb(GtkWidget *w, GdkEvent *e)
 static bool
 clear_cb(GtkWidget *w)
 {
-	MCC[0] = 0;
+	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(tab_bar));
+
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(msg_view[page]));
+	gtk_text_buffer_set_text(buffer, "", -1);
 
 	return false;
 }

@@ -12,6 +12,7 @@
 #include "flash.h"
 #include "chat.h"
 #include "autologin.h"
+#include "conf.h"
 
 const char *tz_client_dir;
 
@@ -33,34 +34,45 @@ int main(int argc, char **argv, char *envp[])
 	textdomain(PACKAGE);
 #endif
 
+	// Находим домашнюю директорию
 	const char *home_dir = g_getenv("HOME");
 	if (!home_dir) {
 		home_dir = g_get_home_dir();
 	}
 
-	// parse arguments
+	// Обрабатываем опции
 	if (!initArgs(argc, argv)) {
+		elog(_("Undefuined error in arguments."));
 		return -1;
 	}
 
+	// Находим TZ директорию
 	if (!tz_client_dir) {
 		tz_client_dir = g_strconcat(home_dir, G_DIR_SEPARATOR_S, ".timezero", G_DIR_SEPARATOR_S, NULL);
 	}
 
+	// Переключаемся в директорию TZ
 	if (chdir(tz_client_dir) == -1) {
-		elog("Can't change work directory to: %s", tz_client_dir);
+		elog(_("Can't change work directory to: %s"), tz_client_dir);
 		return -1;
 	}
 
-	// Check tz.swf file exist in current dir
+	// Инициализируем конфиг (дефолтом)
+	// важно это делать после переключения в директорию TZ
+	if (!conf_init()) {
+		elog(_("Problem with conf."));
+		return -1;
+	}
+
+	// Если в TZ директории нет tz.swf - это ошибка
 	tz_file_path = g_strconcat(tz_client_dir, "tz.swf", NULL);
 	if (!g_file_test(tz_file_path, G_FILE_TEST_EXISTS)) {
 		elog(_("File Don't exist: %s"), tz_file_path);
 		return -2;
 	}
 
-	// load gtk theme
 	if (!no_theme) {
+		// Грузим оформление GTK
 		char *gtk_rc_fp = g_strconcat(tz_client_dir, G_DIR_SEPARATOR_S, "gtkrc", NULL);
 		gtk_rc_add_default_file(gtk_rc_fp);
 	}

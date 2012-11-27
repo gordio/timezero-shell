@@ -12,6 +12,7 @@
 #include "tz-interface.h"
 #include "events.h"
 #include "utils.h"
+#include "conf.h"
 
 WebKitWebView *webView;
 
@@ -141,12 +142,15 @@ script_alert_cb(WebKitWebView *webView, WebKitWebFrame *frame, char *data, gpoin
 	} else if (g_str_has_prefix(data, "R,")) {
 		tz_list_refresh(data);
 	} else if (g_str_has_prefix(data, "info,")) {
+		// приват персу
 		char *nick = strdup(data + 5);
 		insert_nick_to_entry(nick, true);
 		free(nick);
 	} else if (g_str_has_prefix(data, "Z,")) {
+		// системное сообщение
 		parse_and_add_system_message(data);
 	} else if (g_str_has_prefix(data, "fullscreen,1")) {
+		// login screen
 		tz_fullscreen = true;
 
 		if (chat_panel) {
@@ -155,6 +159,7 @@ script_alert_cb(WebKitWebView *webView, WebKitWebFrame *frame, char *data, gpoin
 
 		al_window_show();
 	} else if (g_str_has_prefix(data, "fullscreen,0")) {
+		// игровой режим
 		tz_fullscreen = false;
 
 		if (chat_panel) {
@@ -163,13 +168,15 @@ script_alert_cb(WebKitWebView *webView, WebKitWebFrame *frame, char *data, gpoin
 			chat_panel = create_chat_frame();
 			gtk_paned_pack2(GTK_PANED(main_panels), chat_panel, true, false);
 			gtk_widget_show_all(chat_panel);
-			gtk_widget_hide(room_label_building); // fixme: this bad
 		}
+		gtk_widget_hide(room_label_building);
 
 		al_window_hide();
 	} else if (g_str_has_prefix(data, "cmd,")) {
-		recreate_cmd_popup_menu(data);
+		// список команд
+		update_cmd(data + 4);
 	} else if (g_str_has_prefix(data, "Start,")) {
+		// Чат запущен
 		tz_chat_start(data);
 		setChatState(CHAT_ON);
 	} else if (g_str_has_prefix(data, "Stop,0")) {

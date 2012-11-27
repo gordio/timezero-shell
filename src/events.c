@@ -1,4 +1,3 @@
-#include <gdk/gdkkeysyms.h>
 #include "general.h"
 #include "window.h"
 #include "chat.h"
@@ -10,9 +9,10 @@
 static GdkCursor *cur_hand = NULL;
 
 
-// Hapend if click on TIME in messages frame
+/* Чат {{{ */
+// Калбек для чатового времени
 bool
-tag_time_cb(GtkTextTag *tag, GObject *o, GdkEvent *e, GtkTextIter *i, gpointer user_data)
+tag_time_cb(GtkTextTag *tag, GObject *o, GdkEvent *e, GtkTextIter *i, gpointer p)
 {
 	GtkTextIter *i_start, *i_end;
 
@@ -96,55 +96,6 @@ tag_nick_cb(GtkTextTag *tag, GObject *o, GdkEventButton *e, GtkTextIter *i, gpoi
 	}
 }
 
-/*// example
-bool
-on_tag_event(GtkTextTag *tag, GObject *o, GdkEvent *e, const GtkTextIter *i, gpointer user_data)
-{
-	GtkTextIter *iter_line_start, *iter_line_end;
-
-	iter_line_start = gtk_text_iter_copy(i);
-	iter_line_end = gtk_text_iter_copy(i);
-	gtk_text_iter_backward_line(iter_line_start);
-	gtk_text_iter_forward_line(iter_line_end);
-	switch (e->type) {
-	case GDK_ENTER_NOTIFY:
-		break;
-	case GDK_LEAVE_NOTIFY:
-		break;
-	case GDK_MOTION_NOTIFY:
-		break;
-	case GDK_2BUTTON_PRESS:
-		break;
-	case GDK_3BUTTON_PRESS:
-		break;
-	case GDK_BUTTON_PRESS:
-		[>g_print(">>%s", gtk_text_buffer_get_text(msgViewBuffer, iter_line_start, iter_line_end, false));<]
-		break;
-	case GDK_BUTTON_RELEASE:
-		//g_print("Button released from Bold Text\n");
-		//g_print("   -- x: [%.2f], y: [%.2f]\n",
-		//event->button.x, event->button.y);
-		break;
-	default:
-		g_print("Some event...\n");
-		break;
-	}
-	return true;
-}*/
-
-
-static int old_size = 0;
-void
-flash_resize_cb(GtkContainer *container, gpointer user_data)
-{
-	int cur_size = gtk_paned_get_position(GTK_PANED(main_panels));
-	if (cur_size != 0 && old_size != cur_size) {
-		old_size = cur_size;
-		vlog("Send signal to flash -> update_size");
-		tzFlashResize();
-	}
-}
-
 // use for change cursor pointer on links
 bool
 chat_text_view_event_cb(GtkWidget *w, GdkEventMotion *event, GSList *tags)
@@ -194,58 +145,8 @@ chat_text_view_event_cb(GtkWidget *w, GdkEventMotion *event, GSList *tags)
 
 	return false;
 }
+/* }}} */
 
-bool
-keypress_cb(GtkWidget *w, GdkEventKey *e, gpointer user_data)
-{
-	/*if (event->state == (GDK_CONTROL_MASK|GDK_SHIFT_MASK)) {
-		if (gdk_keyval_to_lower(event->keyval) == GDK_x) {
-			return true;
-		}
-	}*/
-	if (e->state & GDK_MOD1_MASK) {
-		switch (e->keyval) {
-			case GDK_1:
-				chat_set_tab(1);
-				return true;
-
-			case GDK_2:
-				chat_set_tab(2);
-				return true;
-
-			case GDK_3:
-				chat_set_tab(3);
-				return true;
-
-			case GDK_4:
-				chat_set_tab(4);
-				return true;
-
-			case GDK_5:
-				chat_set_tab(5);
-				return true;
-
-			default:
-				return false;
-		}
-	} else {
-		switch (e->keyval) {
-			case GDK_F11:
-				fullscreen_toggle();
-				return true;
-
-			case GDK_F5:
-				tab_refresh();
-				return true;
-
-			case GDK_F12:
-				return true;
-
-			default:
-				return false;
-		}
-	}
-}
 
 void
 room_click_info_cb(GtkWidget *w, GdkEvent *e, gpointer data)
