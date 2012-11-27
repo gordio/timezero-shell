@@ -154,7 +154,7 @@ script_alert_cb(WebKitWebView *webView, WebKitWebFrame *frame, char *data, gpoin
 		tz_fullscreen = true;
 
 		if (chat_panel) {
-			gtk_widget_hide(chat_main_box);
+			gtk_widget_hide(chat_panel);
 		}
 
 		al_window_show();

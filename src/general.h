@@ -35,7 +35,7 @@
 	#define S_(str) ((char*) (str))
 #endif
 
-typedef struct tzPlayer_t {
+typedef struct _player {
 	unsigned long long int battleid;
 	int group;
 	unsigned int state;
@@ -46,6 +46,6 @@ typedef struct tzPlayer_t {
 	int minlevel;
 	int aggr; // Фракция
 	int stake;
-} tzPlayer;
+} player_t;
 
 #endif

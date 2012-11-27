@@ -21,7 +21,7 @@ GtkWidget *al_remove_button, *al_edit_button;
 GtkEntry *login_entry, *pass_entry;
 GtkWidget *file_chooser;
 
-static tzLogin al_list[MAX_AUTOLOGIN_ITEMS];
+static login_t al_list[MAX_AUTOLOGIN_ITEMS];
 static GtkWidget *al_widget[MAX_AUTOLOGIN_ITEMS];
 
 
@@ -161,7 +161,7 @@ al_window_hide(void)
 }
 
 bool
-al_list_update_by_player(tzPlayer *p)
+al_list_update_by_player(player_t *p)
 {
 	vlog("Update autologin info from chat player info");
 
@@ -215,7 +215,7 @@ al_list_update_by_player(tzPlayer *p)
 }
 
 static void
-al_item_window_create(tzLogin *l)
+al_item_window_create(login_t *l)
 {
 	vlog("Create autologin window - add/edit item");
 
@@ -316,7 +316,7 @@ al_add_item_window(GtkButton *b, gpointer user_data)
 	vlog("Add autologin item.");
 
 	const char *tmp;
-	tzLogin *login_item = NULL;
+	login_t *login_item = NULL;
 
 	// check exist
 	for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
@@ -375,7 +375,7 @@ al_add_item_window(GtkButton *b, gpointer user_data)
 }
 
 static void
-al_edit_item_window(GtkButton *b, tzLogin *login_item)
+al_edit_item_window(GtkButton *b, login_t *login_item)
 {
 	vlog("Edit autologin item '%s'", login_item->login);
 
@@ -444,7 +444,7 @@ al_item_remove_cb(GtkButton *b, gpointer user_data)
 }
 
 static void
-al_item_remove(tzLogin *login_item)
+al_item_remove(login_t *login_item)
 {
 	vlog("Remove login '%s", login_item->login);
 
@@ -697,7 +697,7 @@ al_move_cb(GtkWidget *w, GdkEvent *e, gpointer p)
 }
 
 static void
-al_item_activate_cb(GtkWidget *w, tzLogin *login_item)
+al_item_activate_cb(GtkWidget *w, login_t *login_item)
 {
 	vlog("Activate button callback");
 
@@ -731,7 +731,7 @@ window_add_item_close_cb(GtkWidget *w)
 }
 
 static void
-al_item_activate(tzLogin *login_item)
+al_item_activate(login_t *login_item)
 {
 	vlog("Activite autologin item '%s'", login_item->login);
 

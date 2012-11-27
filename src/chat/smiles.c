@@ -1,7 +1,9 @@
-#include "../general.h"
-#include "../utils.h"
-#include "../chat.h"
-#include "../flash.h"
+#include "general.h"
+#include "utils.h"
+#include "chat.h"
+#include "flash.h"
+
+#include "smiles.h"
 
 
 GtkWidget *

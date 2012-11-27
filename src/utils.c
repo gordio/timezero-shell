@@ -10,23 +10,23 @@
 
 
 /* IMAGE CACHING */
-struct imgCache_t {
+struct _img_cache {
 	char *path;
 	GtkWidget *image;
 
-	struct imgCache_t *next;
+	struct _img_cache *next;
 };
 
 // Глобальные кеши
-struct imgCache_t *img_cache_clan = NULL;
-struct imgCache_t *img_cache_profession = NULL;
-struct imgCache_t *img_cache_rank = NULL;
+struct _img_cache *img_cache_clan = NULL;
+struct _img_cache *img_cache_profession = NULL;
+struct _img_cache *img_cache_rank = NULL;
 
 
-static struct imgCache_t*
-image_in_cache(struct imgCache_t *list, char *img_path)
+static struct _img_cache*
+image_in_cache(struct _img_cache *list, char *img_path)
 {
-	struct imgCache_t *item = list;
+	struct _img_cache *item = list;
 
 	// перебираем каждый элемент от начала
 	while (item) {
@@ -43,14 +43,14 @@ image_in_cache(struct imgCache_t *list, char *img_path)
 }
 
 static GtkWidget*
-get_image(struct imgCache_t *list, char *img_path)
+get_image(struct _img_cache *list, char *img_path)
 {
-	struct imgCache_t *item = list;
+	struct _img_cache *item = list;
 
 	// если список еще не создан
 	if (!item) {
 		// создаем элемент
-		struct imgCache_t *new_item = malloc(sizeof(struct imgCache_t));
+		struct _img_cache *new_item = malloc(sizeof(struct _img_cache));
 		new_item->image = gtk_image_new_from_file(img_path);
 		new_item->path = strdup(img_path);
 		new_item->next = NULL;
@@ -74,7 +74,7 @@ get_image(struct imgCache_t *list, char *img_path)
 	}
 
 	// создаем элемент
-	struct imgCache_t *new_item = malloc(sizeof(struct imgCache_t));
+	struct _img_cache *new_item = malloc(sizeof(struct _img_cache));
 	new_item->image = gtk_image_new_from_file(img_path);
 	new_item->path = strdup(img_path);
 	new_item->next = NULL;
@@ -129,7 +129,7 @@ escape_str(char *data)
 /* GTK  {{{ */
 /* create_nick_box: Создает виджет игрока (для автологина) */
 GtkWidget *
-al_list_widget_create(tzLogin *player)
+al_list_widget_create(login_t *player)
 {
 	GtkWidget *nick_box;
 	GtkWidget *w;
@@ -190,7 +190,7 @@ al_list_widget_create(tzLogin *player)
 
 /* виджет игрока (для списка игроков в комнате) */
 GtkWidget *
-list_nickbox_create(tzPlayer *p)
+list_nickbox_create(player_t *p)
 {
 	GtkWidget *nick_box;
 	GtkWidget *label;

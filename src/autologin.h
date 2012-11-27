@@ -7,7 +7,7 @@
 #define MAX_PASSWORD_CHARS 80
 #define MAX_AUTOLOGIN_ITEMS 20
 
-typedef struct tzLogin_t {
+typedef struct _login {
 	char *login;
 	char *password;
 	char *clan;
@@ -15,7 +15,7 @@ typedef struct tzLogin_t {
 	unsigned int level;
 	unsigned int rank;
 	char *key_file_path;
-} tzLogin;
+} login_t;
 
 
 void al_window_show();
@@ -23,6 +23,5 @@ void al_window_hide();
 
 bool al_list_update_by_player();
 void al_list_print();
-
 
 #endif

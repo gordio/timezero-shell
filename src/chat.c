@@ -16,7 +16,7 @@
 
 GtkWidget *button_scan, *button_smiles, *button_cmd, *button_config, *button_exit, *button_translit;
 GtkEntry *msg_entry;
-GtkWidget *chat_main_box, *chat_text_box, *bottom_buttons, *room_list, *tab_bar;
+GtkWidget *room_list, *tab_bar;
 
 GtkWidget *msg_view[5];
 
@@ -69,7 +69,7 @@ static char *system_message_fmt[] = {
 #include "chat.h"
 
 // FIXME: Use undefined list for players in rppm
-tzPlayer Room_player[MAX_ROOM_NICKS];
+player_t Room_player[MAX_ROOM_NICKS];
 GtkWidget *Room_widget[MAX_ROOM_NICKS];
 
 // Messages caches
@@ -102,13 +102,14 @@ create_chat_frame()
 	GtkWidget *scroll;
 	GtkWidget *vseparator;
 	GtkWidget *label;
+	GtkWidget *main_box, *text_box, *bottom_buttons;
 
 	// Create chat containers
-	chat_main_box = gtk_vbox_new(false, 0);
-	gtk_container_set_border_width(GTK_CONTAINER(chat_main_box), 1);
-	chat_text_box = gtk_hpaned_new();
-	gtk_container_set_border_width(GTK_CONTAINER(chat_text_box), 1);
-	gtk_box_pack_start(GTK_BOX(chat_main_box), chat_text_box, true, true, 0);
+	main_box = gtk_vbox_new(false, 0);
+	gtk_container_set_border_width(GTK_CONTAINER(main_box), 1);
+	text_box = gtk_hpaned_new();
+	gtk_container_set_border_width(GTK_CONTAINER(text_box), 1);
+	gtk_box_pack_start(GTK_BOX(main_box), text_box, true, true, 0);
 
 	tab_bar = gtk_notebook_new();
 	/*gtk_widget_set_size_request(GTK_WIDGET(msgView), 400, -1);*/
@@ -119,7 +120,7 @@ create_chat_frame()
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scroll), GTK_SHADOW_IN);
 
-	gtk_paned_pack1(GTK_PANED(chat_text_box), GTK_WIDGET(tab_bar), true, false);
+	gtk_paned_pack1(GTK_PANED(text_box), GTK_WIDGET(tab_bar), true, false);
 
 
 	for (unsigned int i = 0; i < countof(msg_view); i++) {
@@ -162,7 +163,7 @@ create_chat_frame()
 
 
 	scroll = create_room_list_widget();
-	gtk_paned_pack2(GTK_PANED(chat_text_box), GTK_WIDGET(scroll), false, false);
+	gtk_paned_pack2(GTK_PANED(text_box), GTK_WIDGET(scroll), false, false);
 
 
 	// BUTTONS PANEL
@@ -221,12 +222,12 @@ create_chat_frame()
 	gtk_box_pack_start(GTK_BOX(bottom_buttons), button_exit, false, true, 2);
 
 
-	gtk_box_pack_start(GTK_BOX(chat_main_box), bottom_buttons, false, true, 2);
+	gtk_box_pack_start(GTK_BOX(main_box), bottom_buttons, false, true, 2);
 
 
 	setChatState(CHAT_FULL_OFF);
 
-	return chat_main_box;
+	return main_box;
 }
 
 
@@ -402,7 +403,7 @@ room_widget_redraw(void)
 	return;
 }
 
-static tzPlayer *
+static player_t *
 get_player_or_exist(char *nick)
 {
 	// search exist player item
@@ -432,7 +433,7 @@ tz_list_add(const char const *data, bool disable_refresh)
 
 	// Example: 0/0/33/The Alliance/Pilot-Lucky/19/4570/0/1
 	char *nick = malloc(MAX_NICK_SIZE*2+1); // temp nickname for find exist player element
-	tzPlayer *p;
+	player_t *p;
 
 	// find exist or new player element
 	if (1 == sscanf(data, "A,%*u/%*d/%*u//%[^/]/%*d/%*d/%*d/%*d", nick)) {
@@ -566,7 +567,8 @@ tz_list_refresh(const char const *data)
 /*}}}*/
 
 void
-tz_chat_start(const char const *data) {
+tz_chat_start(const char const *data)
+{
 	if (current_player_name) {
 		free(current_player_name);
 	}

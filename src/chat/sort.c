@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../general.h"
+#include "general.h"
 
 #include "sort.h"
 
@@ -10,18 +10,18 @@
  */
 
 void
-tzplayer_swap(tzPlayer *a, tzPlayer *b)
+tzplayer_swap(player_t *a, player_t *b)
 {
-	tzPlayer t = *a;
+	player_t t = *a;
 
 	*a = *b;
 	*b = t;
 }
 
 void
-room_array_qsort_by_level(tzPlayer list[], int beg, int end)
+room_array_qsort_by_level(player_t list[], int beg, int end)
 {
-	tzPlayer key;
+	player_t key;
 	int i, j, k;
 
 	if (beg < end) {
@@ -48,7 +48,7 @@ room_array_qsort_by_level(tzPlayer list[], int beg, int end)
 
 
 void
-room_array_sort_by_level(tzPlayer list[])
+room_array_sort_by_level(player_t list[])
 {
 	for (unsigned int i = 0; i < MAX_ROOM_NICKS; i++) {
 		for (int j = 1; j < MAX_ROOM_NICKS; j++) {
@@ -65,7 +65,7 @@ room_array_sort_by_level(tzPlayer list[])
  * Сортировка по уровню > по рангу
  */
 void
-room_array_sort_by_level_by_rank(tzPlayer list[])
+room_array_sort_by_level_by_rank(player_t list[])
 {
 	unsigned int beg = 0, end = 0;
 
