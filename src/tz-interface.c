@@ -9,7 +9,12 @@
 void
 tzExec(const char *cmd)
 {
-	webkit_web_view_execute_script(webView, g_strconcat("tz.", cmd, NULL));
+	char *tmp;
+
+	tmp = g_strconcat("if (tz) { tz.", cmd, "}", NULL);
+	webkit_web_view_execute_script(webView, tmp);
+
+	free(tmp);
 }
 
 // Установить значение переменной
