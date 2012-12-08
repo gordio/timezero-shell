@@ -30,51 +30,51 @@ bool chatOn = true, chatRefresh = true;
 
 static bool in_building = false;
 
+// TODO: исходно на English
 // Системные сообщения
 static char *system_message_fmt[] = {
-	"послала воздушный поцелуй персонажу %s",
-	"бросил грязью в персонажа %s",
-	"преподнес букет цветов девушке %s",
-	"запретил общение в чате персонажу %s",
-	"запретила общение в чате персонажу %s",
-	"бросила грязью в персонажа %s",
-	"открыл подарок от %s",
-	"открыла подарок от %s",
-	"запустил фейерверк %s",
-	"запустила фейерверк %s",
-	"%sПерсонаж %s в данный момент не может общаться в чате",
-	"%s заразился вирусом X от %s",
-	"%s заразилась вирусом X от %s",
-	"Персонаж %s ищет вас при помощи локатора",
-	"использовал %s на персонажа %s",
-	"пройден квест %s",
-	"пройдена часть квеста %s",
-	"плеснул ядом в персонажа %s",
-	"бросил монетку персонажу %s",
-	"взят квеcт %s",
-	"квест %s провален",
-	"получены медные монеты: %s",
-	"получены перк-монеты: %s",
-	"получен перк: %s",
-	"получен опыт: %s",
-	"Входит %s",
-	"Уходит %s",
-	"%s метнул снежком в персонажа %s",
-	"Получен предмет: %s",
-	"признаётся в любви персонажу %s",
-	"выражает свои чувства персонажу %s",
-	"дарит миллион сердец персонажу %s"
+	"%s has blown a kiss to %s",
+	"%s has thrown mud at %s",
+	"%s has presented flowers to %s",
+	"%s has blocked chat for character %s",
+	"%s has blocked chat for character %s", // girl
+	"%s has thrown mud at %s",
+	"%s has opened a gift from %s",
+	"%s has opened a gift from %s", // girl
+	"%s has let off fireworks %s",
+	"%s has let off fireworks %s", // girl
+	"%sCharacter %s currently can not communicate in chat",
+	"%s has caught Virus X infection from %s",
+	"%s has caught Virus X infection from %s", // girl
+	"%sCharacter %s is trying to locate you",
+	"use %s on %s",
+	"%s complete quest %s",
+	"%sComplete quest part %s",
+	"%s poured poison in %s",
+	"%s throw coin to %s",
+	"%sQuest accepted %s",
+	"%sQuest %s is failed",
+	"%sReceive coins: %s",
+	"%sReceive Perk points: %s",
+	"%sReceive Perk: %s",
+	"%sReceive experience: %s",
+	"%sIn %s",
+	"%sOut %s",
+	"%s throw a snowball in %s",
+	"%sReceive object: %s",
+	"%s declaration of love to %s",
+	"%s expresses his feelings to %s",
+	"%s gives a million hearts to %s"
 };
 
 #include "chat.h"
 
-// FIXME: Use undefined list for players in rppm
+// FIXME: Использовать список
 player_t Room_player[MAX_ROOM_NICKS];
 GtkWidget *Room_widget[MAX_ROOM_NICKS];
 
-// Messages caches
-static unsigned long MCC[1024];
-static unsigned long MCS[512];
+// Кеш хешей сообщений
+static unsigned long MSG_CACHE[1024];
 
 
 bool send_text();
@@ -95,7 +95,7 @@ static bool clear_cb();
 void room_label_cb();
 
 
-/* Создание виджетов {{{ */
+/* CHAT Widgets {{{ */
 GtkWidget *
 create_chat_frame()
 {
@@ -103,6 +103,8 @@ create_chat_frame()
 	GtkWidget *vseparator;
 	GtkWidget *label;
 	GtkWidget *main_box, *text_box, *bottom_buttons;
+	GtkWidget *view;
+
 
 	// Create chat containers
 	main_box = gtk_vbox_new(false, 0);
@@ -124,7 +126,6 @@ create_chat_frame()
 
 
 	for (unsigned int i = 0; i < countof(msg_view); i++) {
-		GtkWidget *view;
 		view = chat_msg_view_new();
 
 		scroll = gtk_scrolled_window_new(NULL, NULL);
@@ -153,7 +154,7 @@ create_chat_frame()
 				break;
 
 			default:
-				label = gtk_label_new(_("undefined"));
+				label = gtk_label_new("undef");
 				break;
 		}
 
@@ -171,6 +172,7 @@ create_chat_frame()
 
 	button_scan = gtk_button_new();
 	gtk_button_add_image(GTK_BUTTON(button_scan), "img/button/chat/scan.png");
+	gtk_widget_set_tooltip_text(button_smiles, _("Scaning warning"));
 	gtk_widget_set_sensitive(button_scan, false);
 	gtk_button_set_relief(GTK_BUTTON(button_scan), GTK_RELIEF_NONE);
 	g_signal_connect(G_OBJECT(button_scan), "clicked", G_CALLBACK(&press_scan_info_cb), NULL);
@@ -343,10 +345,9 @@ create_room_list_widget(void)
 
 	return scroll;
 }
+/* }}} */
 
-/*}}}*/
-
-/* Chat utils {{{*/
+/* CHAT Utils {{{*/
 void
 chat_set_tab(int index)
 {
@@ -365,7 +366,7 @@ room_widget_redraw(void)
 {
 	gtk_widget_hide(room_box);
 
-	// remove widgets
+	// Уничтожаем все старые виджеты
 	for (unsigned int i = 0; i < countof(Room_widget); i++) {
 		if (Room_widget[i]) {
 			gtk_widget_destroy(Room_widget[i]);
@@ -395,7 +396,7 @@ room_widget_redraw(void)
 
 	gtk_widget_show_all(room_box);
 
-	// hide building name
+	// вне постройки скрыть виджет постройки
 	if (!in_building) {
 		gtk_widget_hide(room_label_building);
 	}
@@ -406,7 +407,7 @@ room_widget_redraw(void)
 static player_t *
 get_player_or_exist(char *nick)
 {
-	// search exist player item
+	// находим элемент с таким же ником
 	for (unsigned int i = 0; i < countof(Room_player); ++i) {
 		if (Room_player[i].nick) {
 			if (strcmp(nick, Room_player[i].nick) == 0) {
@@ -415,14 +416,14 @@ get_player_or_exist(char *nick)
 		}
 	}
 
-	// search new empty player item
+	// находим неиспользованный виджет
 	for (unsigned int i = 0; i < countof(Room_player); i++) {
 		if (!Room_player[i].nick) {
 			return &Room_player[i];
 		}
 	}
 
-	// On error
+	// в случае ошибки (все заполнены)
 	return NULL;
 }
 
@@ -431,6 +432,7 @@ tz_list_add(const char const *data, bool disable_refresh)
 {
 	vlog("Add(update) user to room: '%s'", data);
 
+	// id_боя/group_боя/побитовое состояние/Клан/Ник/Уровень/ранк/?/фракция
 	// Example: 0/0/33/The Alliance/Pilot-Lucky/19/4570/0/1
 	char *nick = malloc(MAX_NICK_SIZE*2+1); // temp nickname for find exist player element
 	player_t *p;
@@ -443,11 +445,11 @@ tz_list_add(const char const *data, bool disable_refresh)
 	}
 
 	if (!p) {
-		elog("Can't find empty room slot. Please report to developer.");
+		elog(_("Can't find empty room slot. Please report to developer."));
 		return;
 	}
 
-	// allocate memory
+	// получаем память, если существующий элемент
 	if (!p->nick) {
 		p->nick = malloc(1024);
 	}
@@ -455,12 +457,13 @@ tz_list_add(const char const *data, bool disable_refresh)
 		p->clan = malloc(1024);
 	}
 
-	if (8 == sscanf(data, "A,%llu/%d/%u//%[^/]/%d/%d/%d/%d", &p->battleid, &p->group, &p->state, p->nick, &p->level, &p->rank, &p->minlevel, &p->aggr)) {
+	if (8 == sscanf(data, "A,%llu/%d/%u//%[^/]/%d/%d/%d/%d",
+				&p->battleid, &p->group, &p->state, p->nick, &p->level, &p->rank, &p->minlevel, &p->aggr)) {
 		free(p->clan);
 		p->clan = NULL;
 	} else if (9 == sscanf(data, "A,%llu/%d/%u/%[^/]/%[^/]/%d/%d/%d/%d", &p->battleid, &p->group, &p->state, p->clan, p->nick, &p->level, &p->rank, &p->minlevel, &p->aggr)) {
 	} else {
-		elog("\n!!!ERROR PARSE ADD:%s\n\n", data);
+		elog(_("Can't parse command ADD: '%s'\n"), data);
 		return;
 	}
 
@@ -522,7 +525,7 @@ tz_list_refresh(const char const *data)
 
 
 	if (2 != sscanf(data, "R,%[^\t]\t%[^\n],", loc_text, text)) {
-		elog("Parse Refresh room info\n");
+		elog(_("Can't parse REFRESH command: '%s'\n"), data);
 	}
 
 	char *room_name_p = malloc(strlen(loc_text) + 1);
@@ -578,14 +581,14 @@ tz_chat_start(const char const *data)
 	if (1 == sscanf(data, "Start,%*[^,],%[^,],%*d", current_player_name)) {
 		vlog("Start chat. Current player: %s", current_player_name);
 	} else {
-		wlog("Start chat. Can't parse player in '%s'", data);
+		wlog(_("Start chat. Can't parse player in '%s'"), data);
 	}
 
 	clear_room_players_buffer();
 }
 
 
-/* CHAT Utils {{{ */
+/* CHAT Functions {{{ */
 bool
 send_raw(const char *data)
 {
@@ -692,15 +695,13 @@ insert_nick_to_entry(const char const *nick, int steel_private)
 	return false;
 }
 
-/* }}} */
-
 bool
-parse_and_add_system_message(const char *str)
+parse_and_add_system_message(const char *data)
 {
-	unsigned long hash = 0;
+	unsigned long ID = 0;
 	int status_code = 0;
-	int hours = 99, minutes = 99;
-	char *msg_arg1, *msg_arg2;
+	int H = 99, M = 99;
+	char *arg1, *arg2;
 	char *message;
 
 	GtkWidget *view = msg_view[GENERAL];
@@ -708,36 +709,34 @@ parse_and_add_system_message(const char *str)
 	GtkTextBuffer *buffer;
 
 
-	msg_arg1 = malloc(1024); // Могут быть и ники персонажей, и название предметов
-	msg_arg2 = malloc(1024); // и прочее барахло. Лучше с запасом.
+	arg1 = malloc(1024); // Могут быть и ники персонажей, и название предметов
+	arg2 = malloc(1024); // и прочее барахло. Лучше с запасом.
 	message = malloc(MAX_CHAT_MESSAGE*4); // с запасом
 
 	buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(view));
 
 
-	// Parse
-	if (6 != sscanf(str, "Z,%lx:%d:%d\t%i\t%[^\t]\t%[^\n]",
-				&hash, &hours, &minutes, &status_code, msg_arg1, msg_arg2)) {
-		if (5 != sscanf(str, "Z,%lx:%d:%d\t%i\t\t%[^\n]",
-					&hash, &hours, &minutes, &status_code, msg_arg2)) {
-			elog("Message parse error: %s\n", str);
+	// FIXME: Все же половина не работает >_<
+	if (6 != sscanf(data, "Z,%lx:%d:%d\t%i\t%[^\t]\t%[^\n]", &ID, &H, &M, &status_code, arg1, arg2)) {
+		if (5 != sscanf(data, "Z,%lx:%d:%d\t%i\t\t%[^\n]", &ID, &H, &M, &status_code, arg2)) {
+			elog(_("Can't parse ZTATE command: '%s'\n"), data);
 			return false;
 		} else {
 			// мы же не заполнили, потому
-			memset(msg_arg1, '\0', 1);
+			memset(arg1, '\0', 1);
 		}
 	}
 
-	// Check messages cache
-	for (unsigned int i = 0; i < countof(MCS); i++) {
-		if (MCS[i] == hash) {
-			vlog("Message exist in cache. Don't add");
+	// Проверяем не повтор ли
+	for (unsigned int i = 0; i < countof(MSG_CACHE); i++) {
+		if (MSG_CACHE[i] == ID) {
+			vlog("Message exist in cache. Ignored.");
 			return false;
 		}
 	}
 
 	// Создаем сообщение
-	sprintf(message, system_message_fmt[status_code-1], msg_arg1, msg_arg2);
+	sprintf(message, system_message_fmt[status_code-1], arg1, arg2);
 
 	bool autoscroll = false;
 	GtkWidget *scroll = gtk_widget_get_parent(view);
@@ -754,7 +753,7 @@ parse_and_add_system_message(const char *str)
 	}
 
 	char time[7];
-	sprintf(time, "%.2i:%.2i ", hours, minutes);
+	sprintf(time, "%.2i:%.2i ", H, M);
 
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, time, -1, "time", "system", NULL);
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, message, -1, "system", NULL);
@@ -763,18 +762,18 @@ parse_and_add_system_message(const char *str)
 	if (autoscroll)
 		gtk_adjustment_set_value(a, a->upper);
 
-	free(msg_arg1);
-	free(msg_arg2);
+	free(arg1);
+	free(arg2);
 	free(message);
 
 	return true;
 }
 
 bool
-parse_and_add_message(const char *str)
+parse_and_add_message(const char *data)
 {
-	gulong position = 0;
-	int hours = 99, minutes = 99, text_color_index = 0;
+	gulong ID = 0;
+	int H = 99, M = 99;
 	int nick_spaces = 0;
 	GtkTextIter iter;
 	GtkWidget *view;
@@ -790,19 +789,18 @@ parse_and_add_message(const char *str)
 
 
 	vlog("Start parse input message");
-	if (5 != sscanf(str, "S,%lx:%d:%d [%[^]]] %[^\n]", &position, &hours, &minutes, nick, text)) {
-		elog("Message parse error: %s\n", str);
+	if (5 != sscanf(data, "S,%lx:%d:%d [%[^]]] %[^\n]", &ID, &H, &M, nick, text)) {
+		elog(_("Can't parse SEND command: '%s'\n"), data);
 		return false;
 	}
-	if (2 != sscanf(text, "%[^\t]\t%d", message, &text_color_index)) {
-		elog("Color parse error: %s\n", text);
+	if (1 != sscanf(text, "%[^\t]\t%*d", message)) {
+		elog(_("Can't split message: '%s'"), text);
 	}
 
 	// Check messages cache
-	for (unsigned int i = 0; i < countof(MCC); i++) {
-		if (MCC[i] == position) {
-			vlog("Message exist in cache. Don't add");
-
+	for (unsigned int i = 0; i < countof(MSG_CACHE); i++) {
+		if (MSG_CACHE[i] == ID) {
+			vlog("Message '%lx' exist in cache. Don't add", ID);
 			return false;
 		}
 	}
@@ -816,12 +814,12 @@ parse_and_add_message(const char *str)
 	char *prvt_nick = g_strconcat("private [", current_player_name, "]", NULL);
 	char *to_nick = g_strconcat("to [", current_player_name, "]", NULL);
 
-	// FIXME: Хранить файл в конфиге, и играть альсой
-	if (!self_message && strstr(str, prvt_nick)) {
+	// TODO: Хранить файл в конфиге, и играть альсой
+	if (!self_message && strstr(data, prvt_nick)) {
 		// private [...]
 		system("aplay private.wav &>/dev/null &");
 		highlight = true;
-	} else if (!self_message && strstr(str, to_nick)) {
+	} else if (!self_message && strstr(data, to_nick)) {
 		// to [...]
 		system("aplay radio.wav &>/dev/null &");
 		highlight = true;
@@ -831,19 +829,19 @@ parse_and_add_message(const char *str)
 	free(to_nick);
 
 
-	if (strstr(str, "private [radio]")) {
+	if (strstr(data, "private [radio]")) {
 		rem_substr(message, "private [radio] ");
 		view = msg_view[RADIO];
 	} else {
-		if (strstr(str, "private [clan]")) {
+		if (strstr(data, "private [clan]")) {
 			rem_substr(message, "private [clan] ");
 			view = msg_view[CLAN];
 		} else {
-			if (strstr(str, "private [alliance]")) {
+			if (strstr(data, "private [alliance]")) {
 				rem_substr(message, "private [alliance] ");
 				view = msg_view[ALLIANCE];
 			} else {
-				if (strstr(str, "private [")) {
+				if (strstr(data, "private [")) {
 					view = msg_view[PRIVATE];
 				} else {
 					view = msg_view[GENERAL];
@@ -853,14 +851,14 @@ parse_and_add_message(const char *str)
 	}
 
 	// add hash to message cache
-	for (unsigned int i = 0; i < countof(MCC); i++) {
-		if (MCC[i] == 0) {
-			if (i < countof(MCC)) {
-				MCC[i] = position;
-				MCC[i+1] = 0;
+	for (unsigned int i = 0; i < countof(MSG_CACHE); i++) {
+		if (MSG_CACHE[i] == 0) {
+			if (i < countof(MSG_CACHE)) {
+				MSG_CACHE[i] = ID;
+				MSG_CACHE[i+1] = 0;
 			} else {
-				MCC[i] = position;
-				MCC[0] = 0;
+				MSG_CACHE[i] = ID;
+				MSG_CACHE[0] = 0;
 			}
 			break;
 		}
@@ -889,12 +887,13 @@ parse_and_add_message(const char *str)
 	GtkWidget *scroll = gtk_widget_get_parent(view);
 	GtkAdjustment *a = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll));
 	if (adjustment_is_bottom(a)) {
+		// FIXME: Проблема с скролом при изменении размеров окна
 		autoscroll = true;
 	}
 
 	// Время
 	char time[7];
-	sprintf(time, "%.2i:%.2i ", hours, minutes);
+	sprintf(time, "%.2i:%.2i ", H, M);
 
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, time, -1, "time", if_highlight_tag, NULL);
 	
@@ -904,17 +903,20 @@ parse_and_add_message(const char *str)
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, tmp_str, nick_spaces, "monospace", if_highlight_tag, NULL);
 	free(tmp_str);
 
-	char tmp_color[8];
-	sprintf(tmp_color, "color-%i", (str_hash(nick, 8) + 1));
-	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, nick, -1, "nickname", tmp_color, if_highlight_tag, NULL);
+	// цвет
+	char tmp[8];
+	sprintf(tmp, "color-%i", (str_hash(nick, 8) + 1));
+	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, nick, -1, "nickname", tmp, if_highlight_tag, NULL);
+
 	gtk_text_buffer_insert(buffer, &iter, ": ", -1);
 
 	// Сообщение
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, message, -1, "message", NULL);
 
 	// скролим в конец
-	if (autoscroll)
+	if (autoscroll) {
 		gtk_adjustment_set_value(a, a->upper);
+	}
 
 	return true;
 }
@@ -937,7 +939,7 @@ setChatState(int state)
 	}
 	if (state == CHAT_ON) {
 		chatOn = true;
-		// FIXME: Don't implemented
+		// TODO: Don't implemented
 		//gtk_widget_sensitive(button_smiles, true);
 		//gtk_widget_set_sensitive(button_translit), true);
 		gtk_widget_sensitive(GTK_WIDGET(msg_entry), true);
@@ -963,7 +965,9 @@ setChatState(int state)
 	update_cmd_menu();
 }
 
-// CHAT MENU {{{
+/* }}} */
+
+// CHAT Menu {{{
 bool trade = false, snow = false, coin = false, flower = false, flower2 = false;
 bool flower3 = false, venom = false, love = false, love2 = false, love3 = false;
 bool dirt = false, clan = false, alliance = false, radio = false, list = false;
@@ -975,30 +979,34 @@ update_cmd(const char *cmd_str)
 {
 	// запоминаем последнюю команду и не перерисовываем если нет необходимости
 	if (last_cmd_str) {
+		// старая команда есть, если нужно очищаем и копируем
 		if (strcmp(last_cmd_str, cmd_str) != 0) {
 			if (last_cmd_str) {
 				free(last_cmd_str);
 			}
 			last_cmd_str = strdup(cmd_str);
 		} else {
+			// одинаковые командные строки
 			return;
 		}
 	} else {
+		// старой строки нет, копируем
 		last_cmd_str = strdup(cmd_str);
 	}
 
+	// сбрасываем значения
 	trade = false; snow = false; coin = false; flower = false; flower2 = false;
 	flower3 = false; venom = false; love = false; love2 = false; love3 = false;
 	dirt = false; clan = false; alliance = false; radio = false; list = false;
 	kiss = false; kiss2 = false; kiss3 = false; battle = false;
 
-	// сбрасываем значения и скрываем вкладки
 
 	char *tmp = strdup(cmd_str);
 	char *pch = NULL;
 
 	pch = strtok(tmp, ",");
 
+	// пробегаемся по строке и заполняем переменные
 	while (pch && pch != '\0') {
 		if (strcmp(pch, "trade") == 0) {
 			trade = true;
@@ -1039,7 +1047,7 @@ update_cmd(const char *cmd_str)
 		} else if (strcmp(pch, "list") == 0) {
 			list = true;
 		} else {
-			ilog("Not supported command: '%s'", pch);
+			wlog(_("Not supported command: '%s'"), pch);
 		}
 		
 		pch = strtok(NULL, ",");
@@ -1059,19 +1067,14 @@ update_cmd_menu(void)
 	}
 	cmd_menu = gtk_menu_new();
 	gtk_menu_set_reserve_toggle_size(GTK_MENU(cmd_menu), false);
+	gtk_menu_set_title(GTK_MENU(cmd_menu), "CMD");
 
 	if (chatOn) {
-		gtk_menu_set_title(GTK_MENU(cmd_menu), "CMD");
+		// Чат включен, рисуем полное меню
 		menu_item = gtk_menu_item_new_with_label("//stop - выключает чат");
 		gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 		g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(send_raw), "//stop");
-	} else {
-		menu_item = gtk_menu_item_new_with_label("//start - включить чат");
-		gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
-		g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(send_raw), "//start");
-	}
 
-	if (chatOn) {
 		if (chatRefresh) {
 			menu_item = gtk_menu_item_new_with_label("//refreshoff - выключает обновление списка людей в локации");
 			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
@@ -1156,24 +1159,7 @@ update_cmd_menu(void)
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_entry), "//snow");
 		}
 
-		if (clan) {
-			//menu_item = gtk_menu_item_new_with_label("private [clan] - Написать в клан");
-			//gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
-			//g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_start_entry), "private [clan] ");
-		}
-		
-
-		if (alliance) {
-			//menu_item = gtk_menu_item_new_with_label("private [alliance] - Написать в альянс");
-			//gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
-			//g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_start_entry), "private [alliance] ");
-		}
-
-		if (radio) {
-			//menu_item = gtk_menu_item_new_with_label("private [radio] - Написать в радиоволну");
-			//gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
-			//g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(insert_to_start_entry), "private [radio] ");
-		}
+		// TODO: Управление вкладками clan, alliance, radio
 
 		if (battle) {
 			menu_item = gtk_menu_item_new_with_label("//battle - напасть на монстров");
@@ -1186,6 +1172,10 @@ update_cmd_menu(void)
 			gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
 			g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(send_raw), "//list");
 		}
+	} else {
+		menu_item = gtk_menu_item_new_with_label("//start - включить чат");
+		gtk_menu_shell_append(GTK_MENU_SHELL(cmd_menu), menu_item);
+		g_signal_connect_swapped(menu_item, "activate", G_CALLBACK(send_raw), "//start");
 	}
 
 	gtk_widget_show_all(cmd_menu);
@@ -1212,15 +1202,21 @@ activate_msg_entry_cb(GtkWidget *w)
 
 	switch (cur_tab_indx) {
 		case CLAN:
-			msg = g_strconcat("private [clan] ", text, NULL);
+			if (!strstr(text, "private [clan]")) {
+				msg = g_strconcat("private [clan] ", text, NULL);
+			}
 			break;
 
 		case ALLIANCE:
-			msg = g_strconcat("private [alliance] ", text, NULL);
+			if (!strstr(text, "private [alliance]")) {
+				msg = g_strconcat("private [alliance] ", text, NULL);
+			}
 			break;
 
 		case RADIO:
-			msg = g_strconcat("private [radio] ", text, NULL);
+			if (!strstr(text, "private [radio]")) {
+				msg = g_strconcat("private [radio] ", text, NULL);
+			}
 			break;
 
 		default:
@@ -1229,7 +1225,7 @@ activate_msg_entry_cb(GtkWidget *w)
 
 	send_text(msg ? msg : text);
 
-	// clear and return focus
+	// очистить буфер и вернуть фокус полю ввода
 	gtk_entry_set_text(GTK_ENTRY(w), "");
 	gtk_widget_grab_focus(GTK_WIDGET(msg_entry));
 
@@ -1265,7 +1261,7 @@ press_cmd_cb(GtkWidget *w, GdkEvent *e)
 	if (cmd_menu) {
 		gtk_menu_popup(GTK_MENU(cmd_menu), NULL, NULL, &menu_pos_func, w, 2, 0);
 	} else {
-		elog("Don't exist info about commands. Try latter or report to developer.");
+		elog(_("Don't exist info about commands. Try latter."));
 	}
 
 	return false;
