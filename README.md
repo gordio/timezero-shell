@@ -2,12 +2,14 @@ TimeZero Shell
 ==============
 GTK оболочка для игры TimeZero. Первоначально разрабатываемая для Linux.
 
-<p>
-	<strong>Лицензия:</strong> MIT на исходный код, и BY-NC-SA на графические файлы в директории <code>resources</code><br>
-	<strong>Автор:</strong> Гордиенко Олег<br>
-	<strong>Состояние:</strong> В разработке (редко уделяется внимание)<br>
-	<strong>Версия:</strong> 0.1-dev
-</p>
+**Лицензия**: MIT на исходный код, и BY-NC-SA на графические файлы в директории `resources`
+
+**Автор**: Гордиенко Олег
+
+**Состояние**: В разработке (редко уделяется внимание)
+
+**Версия**: 0.1-dev
+
 
 ![Screenshot: TimeZero Shell on Linux](http://ompldr.org/vZ2x5OQ)
 
