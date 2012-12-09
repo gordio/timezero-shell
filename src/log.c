@@ -27,20 +27,19 @@
 void
 elog(const char *fmt, ...)
 {
-	va_list ptr; // извлечение аргумента ptr
+	char *msg = NULL; // Все в порядке, asprintf сам алочит see man.
 
+	va_list ptr; // извлечение аргумента ptr
 	// Инициализация ptr, он становится указателем на первый аргумент,
 	// следующий за строкой форматирования
 	va_start(ptr, fmt);
-
-	int size = snprintf(NULL, 0, " [%sE%s] %s\n", CLI_COLOR_RED, CLI_COLOR_DISABLE, fmt) + 1;
-	char *msg = malloc(size);
 
 	if (asprintf(&msg, " [%sE%s] %s\n", CLI_COLOR_RED, CLI_COLOR_DISABLE, fmt) == -1) {
 		return;
 	}
 	vfprintf(stderr, msg, ptr); // вывод сообщения
 	fflush(stderr); // сброс буфера вывода
+
 	va_end(ptr);
 
 	free(msg);
@@ -50,18 +49,17 @@ elog(const char *fmt, ...)
 void
 wlog(const char *fmt, ...)
 {
+	char *msg = NULL; // Все в порядке, asprintf сам алочит see man.
+
 	va_list ptr;
-
 	va_start(ptr, fmt);
-
-	int size = snprintf(NULL, 0, " [%sW%s] %s\n", CLI_COLOR_YELLOW, CLI_COLOR_DISABLE, fmt) + 1;
-	char *msg = malloc(size);
 
 	if (asprintf(&msg, " [%sW%s] %s\n", CLI_COLOR_YELLOW, CLI_COLOR_DISABLE, fmt) == -1) {
 		return;
 	}
 	vfprintf(stderr, msg, ptr); // вывод сообщения
 	fflush(stderr); // сброс буфера вывода
+
 	va_end(ptr);
 
 	free(msg);
@@ -71,18 +69,17 @@ wlog(const char *fmt, ...)
 void
 ilog(const char *fmt, ...)
 {
+	char *msg = NULL; // Все в порядке, asprintf сам алочит see man.
+
 	va_list ptr;
-
 	va_start(ptr, fmt);
-
-	int size = snprintf(NULL, 0, " [I] %s\n", fmt) + 1;
-	char *msg = malloc(size);
 
 	if (asprintf(&msg, " [I] %s\n", fmt) == -1) {
 		return;
 	}
 	vfprintf(stdout, msg, ptr);
 	fflush(stdout);
+
 	va_end(ptr);
 
 	free(msg);
@@ -96,18 +93,17 @@ vlog(const char *fmt, ...)
 		return;
 	}
 
+	char *msg = NULL; // Все в порядке, asprintf сам алочит see man.
+
 	va_list ptr;
-
 	va_start(ptr, fmt);
-
-	int size = snprintf(NULL, 0, "%s [V] %s%s\n", CLI_COLOR_GRAY, fmt, CLI_COLOR_DISABLE) + 1;
-	char *msg = malloc(size);
 
 	if (asprintf(&msg, "%s [V] %s%s\n", CLI_COLOR_GRAY, fmt, CLI_COLOR_DISABLE) == -1) {
 		return;
 	}
 	vfprintf(stdout, msg, ptr);
 	fflush(stdout);
+
 	va_end(ptr);
 
 	free(msg);
