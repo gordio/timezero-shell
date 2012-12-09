@@ -7,7 +7,6 @@
 #include "flash.h"
 #include "chat.h"
 #include "events.h"
-#include "tz-interface.h"
 #include "conf.h"
 
 GtkWindow *window = NULL;
@@ -137,13 +136,13 @@ void fullscreen_toggle()
 	}
 
 	// Обновляем кишки флеша
-	tzFlashResize();
+	tz_flash_resize();
 }
 
 void
 tab_refresh()
 {
-	tzLogout();
+	tz_logout();
 }
 
 void
@@ -237,7 +236,7 @@ void flash_resize_cb(GtkContainer *c, gpointer p)
 	if (cur_size != 0 && old_size != cur_size) {
 		old_size = cur_size;
 		vlog("Send signal to flash -> update_size");
-		tzFlashResize();
+		tz_flash_resize();
 	}
 }
 

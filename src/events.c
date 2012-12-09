@@ -2,7 +2,6 @@
 #include "window.h"
 #include "chat.h"
 #include "flash.h"
-#include "tz-interface.h"
 
 #include "events.h"
 

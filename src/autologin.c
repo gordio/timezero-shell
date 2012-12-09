@@ -736,10 +736,10 @@ al_item_activate(login_t *login_item)
 	vlog("Activite autologin item '%s'", login_item->login);
 
 
-	tzSetVar("_level0.skin_login.mc_login.login.text", login_item->login);
+	tz_set_var("_level0.skin_login.mc_login.login.text", login_item->login);
 
 	if (login_item->password) {
-		tzSetVar("_level0.skin_login.mc_login.psw.text", login_item->password);
-		tzSetVar("_level0.skin_login.mc_login.btn_enter.releasing", "");
+		tz_set_var("_level0.skin_login.mc_login.psw.text", login_item->password);
+		tz_set_var("_level0.skin_login.mc_login.btn_enter.releasing", "");
 	}
 }
