@@ -11,7 +11,7 @@ tzExec(const char *cmd)
 {
 	char *tmp;
 
-	tmp = g_strconcat("if (tz) { tz.", cmd, "}", NULL);
+	tmp = g_strconcat("if ((typeof tz) != 'undefined') { tz.", cmd, "}", NULL);
 	webkit_web_view_execute_script(webView, tmp);
 
 	free(tmp);
