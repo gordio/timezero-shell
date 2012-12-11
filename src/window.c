@@ -17,7 +17,7 @@ bool window_fullscreen = false;
 #include "window.h"
 
 
-/* Создание виджетов {{{ */
+/* GTK {{{ */
 void
 create_main_window(void)
 {
@@ -93,10 +93,7 @@ create_main_window(void)
 
 	return;
 }
-/* }}} */
 
-
-/* Работа с окнами {{{ */
 void fullscreen_toggle()
 {
 	int panel_size = -1;
@@ -162,8 +159,7 @@ update_position_config()
 }
 /* }}} */
 
-
-/* Callbacks События {{{ */
+/* CALLBACKS {{{ */
 bool event_cb(GtkWidget *w, GdkEvent *e, gpointer p)
 {
 	switch (e->type) {
