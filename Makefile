@@ -28,11 +28,11 @@ all: $(PROJNAME)
 
 $(PROJNAME): $(OBJECTS)
 	@echo -e "\e[1;32m LINK\e[m" $(PROJNAME)
-	@$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o "$(PROJNAME)"
+	@$(CC) $(OBJECTS) $(LDFLAGS) -o "$(PROJNAME)"
 
 %.o: %.c %.h
 	@echo -e "\e[1m   CC\e[m" $<
-	@$(CC) $(CFLAGS) -c -o $@ $<
+	@$(CC) -c $< $(CFLAGS) -o $@
 
 clear:
 	@echo -e "\e[1;31m   RM\e[m" $(OBJECTS)
