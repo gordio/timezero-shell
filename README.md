@@ -7,7 +7,7 @@ GTK оболочка для игры TimeZero. Первоначально раз
 **Версия**: 0.1-dev
 
 
-![Screenshot: TimeZero Shell on Linux](http://ompldr.org/vZ2x5OQ)
+![Screenshot: TimeZero Shell on Linux](http://pic4net.com/di-EJ61TN.jpg)
 
 
 Сборка и настройка
