@@ -1,4 +1,25 @@
+# Backup files
 *~
+
+# Object files
 *.o
+*.ko
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Compiled locales
 *.mo
+
+# Executables
+*.exe
+*.out
+*.app
 timezero-shell
