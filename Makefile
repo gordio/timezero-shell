@@ -44,19 +44,21 @@ clean: clear
 
 install: $(PROJNAME)
 	@echo -e "\e[1m > Copy resources\e[m"
-	@echo -n "Make directory..."
+	@echo -n " - Make directory..."
 	@mkdir -p ${TZ_DIR} && echo " done."
-	@echo -n "Copy images..."
+	@echo -n " - Copy images..."
 	@cp -r resources/img ${TZ_DIR} && echo " done."
-	@echo -n "Copy sounds..."
+	@echo -n " - Copy sounds..."
 	@cp resources/*.wav ${TZ_DIR} && echo " done."
-	@echo -n "Copy style..."
+	@echo -n " - Copy style..."
 	@cp resources/gtkrc ${TZ_DIR} && echo " done."
 	@echo
 	@# Приблизительный размер скачиваемый/устанавливаемый 130МБ
 	@echo -e "\e[1m > Install/update TimeZero Client\e[m"
-	@echo "Download update script...";
-	@cd ${TZ_DIR};wget -q http://ompldr.org/vZHAwdw/update -O update
-	@echo "Start updater script...";
+	@echo -n " - Download update script...";
+	@cd ${TZ_DIR};wget -q http://game.timezero.ru/tzupdate3.pl -O update && echo " done."
+	@echo -n " - Fix update script problems"
+	@cd ${TZ_DIR};sed -i 's/die "Wrong client/#&/' update && echo " done."
+	@echo " - Start updater script...";
 	@cd ${TZ_DIR};chmod u+x update; ./update || echo "Some errors detected."
 	@echo -e "\e[1m * Finished\e[m"
