@@ -17,6 +17,7 @@ CFLAGS  += -Wno-unused-function -Wno-unused-parameter
 CFLAGS  += -DENABLE_CLI_COLORS -DENABLE_NLS
 CFLAGS  += -DVERSION=\"$(VERSION)\"
 LDFLAGS += `pkg-config --libs gtk+-2.0 webkit-1.0 json-c`
+ASTYLE_ARGS += --style=kr --indent=tab --suffix=none
 
 
 .SUFFIXES: .c .h .o
@@ -31,6 +32,9 @@ $(PROJNAME): $(OBJECTS)
 %.o: %.c %.h
 	@echo -e "\e[1m   CC\e[m" $<
 	@$(CC) -c $< $(CFLAGS) -o $@
+
+indent:
+	@astyle $(ASTYLE_ARGS) $(SOURCES)
 
 clear:
 	@echo -e "\e[1;31m   RM\e[m" $(OBJECTS)
