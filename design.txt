@@ -1,0 +1,12 @@
+
+TimeZero Shell is cross-platform GTK based application.
+
+
+Modules:
+ - update
+ - window
+ - conf
+ - flash
+ - chat
+ - messages
+ - autologin
