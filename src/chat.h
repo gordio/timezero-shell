@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 
 
+#define MAX_MSG_HASHES_CACHE 1024
 #define CHAT_TIME_FG      "#A0A0A0"
 #define CHAT_HIGHLIGHT_BG "#29241B"
 #define CHAT_NICK_FG      "#FFFFFF"

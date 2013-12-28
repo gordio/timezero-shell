@@ -25,6 +25,6 @@ void al_window_show(void);
 void al_window_hide(void);
 
 bool al_list_update_by_player(player_t *p);
-void al_list_print(void);
+login_t * al_list_get_array(void);
 
 #endif

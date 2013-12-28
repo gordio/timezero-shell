@@ -37,6 +37,7 @@ elog(const char *fmt, ...)
 	if (asprintf(&msg, " [%sE%s] %s\n", CLI_COLOR_RED, CLI_COLOR_DISABLE, fmt) == -1) {
 		return;
 	}
+
 	vfprintf(stderr, msg, ptr); // вывод сообщения
 	fflush(stderr); // сброс буфера вывода
 
@@ -57,6 +58,7 @@ wlog(const char *fmt, ...)
 	if (asprintf(&msg, " [%sW%s] %s\n", CLI_COLOR_YELLOW, CLI_COLOR_DISABLE, fmt) == -1) {
 		return;
 	}
+
 	vfprintf(stderr, msg, ptr); // вывод сообщения
 	fflush(stderr); // сброс буфера вывода
 
@@ -77,6 +79,7 @@ ilog(const char *fmt, ...)
 	if (asprintf(&msg, " [I] %s\n", fmt) == -1) {
 		return;
 	}
+
 	vfprintf(stdout, msg, ptr);
 	fflush(stdout);
 
@@ -101,6 +104,7 @@ vlog(const char *fmt, ...)
 	if (asprintf(&msg, "%s [V] %s%s\n", CLI_COLOR_GRAY, fmt, CLI_COLOR_DISABLE) == -1) {
 		return;
 	}
+
 	vfprintf(stdout, msg, ptr);
 	fflush(stdout);
 

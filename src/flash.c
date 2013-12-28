@@ -20,7 +20,6 @@ extern GtkWidget *flash_panel;
 
 GtkWidget *chat_panel = NULL;
 
-// Обрабатывает входящую команду и выполняет нужные функции над ней
 static void command_router(const char const *data);
 
 // CALLBACKS
@@ -177,6 +176,8 @@ command_router(const char const *data)
 			gtk_paned_pack2(GTK_PANED(main_panels), chat_panel, true, false);
 			gtk_widget_show_all(chat_panel);
 		}
+
+		// fix?
 		gtk_widget_hide(room_label_building);
 
 		al_window_hide();
@@ -188,22 +189,25 @@ command_router(const char const *data)
 		tz_chat_start(data);
 		setChatState(CHAT_ON);
 	} else if (g_str_has_prefix(data, "Stop,")) {
-		// n == 0 - Выход их игры
+		// n == 0 - Выход из игры
 		// n == 1 - Остановка чата пользователем
 		// n == 2 - отвалился, зараза :D
 		switch (atoi(data+5)) {
-			case 0:
-				setChatState(CHAT_ON);
-				break;
-			case 1:
-				setChatState(CHAT_OFF);
-				break;
-			case 2:
-				setChatState(CHAT_OFF);
-				break;
-			default:
-				setChatState(CHAT_OFF);
-				break;
+		case 0:
+			setChatState(CHAT_ON);
+			break;
+
+		case 1:
+			setChatState(CHAT_OFF);
+			break;
+
+		case 2:
+			setChatState(CHAT_OFF);
+			break;
+
+		default:
+			setChatState(CHAT_OFF);
+			break;
 		}
 	} else if (g_str_has_prefix(data, "vip,")) {
 		// Нужно придумать вкусняшки
@@ -303,9 +307,20 @@ tz_battle_join(const int side, const unsigned int id, const int blood)
 }
 
 void
-tz_flash_resize(void)
+tz_flash_resize()
 {
 	tz_exec("resizeStage();");
+}
+
+void
+tz_autoauth(char* login, char* password)
+{
+	tz_set_var("_level0.skin_login.mc_login.login.text", login);
+
+	if (password) {
+		tz_set_var("_level0.skin_login.mc_login.psw.text", password);
+		tz_set_var("_level0.skin_login.mc_login.btn_enter.releasing", "");
+	}
 }
 
 void

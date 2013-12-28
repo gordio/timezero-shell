@@ -37,7 +37,7 @@ create_main_window(void)
 	gtk_window_set_geometry_hints(window, NULL, &window_hints, GDK_HINT_MIN_SIZE);
 
 
-	// Грузим позицию с конфига и меняем размер окна
+	// Get size & position from config
 	int top, left, width, height;
 	char *method;
 	conf_get_int("window.top", &top);
@@ -47,6 +47,7 @@ create_main_window(void)
 	conf_get("window.pos_method", &method);
 
 	gtk_window_set_default_size(window, MIN_WINDOW_WIDTH, 650);
+
 	if (strcmp(method, "save") == 0 && top != -1 && left != -1) {
 		// устанавливаем сохраненные размеры и позицию
 		gtk_window_move(window, top, left);
@@ -70,17 +71,17 @@ create_main_window(void)
 	gtk_widget_set_size_request(GTK_WIDGET(flash_panel), -1, 440);
 
 	int panel_size = -1;
+
 	if (fullscreen) {
 		window_fullscreen = true;
 		gtk_window_fullscreen(window);
+
 		// Загружаем с конфига размер флеш панели
-		if (conf_get_int("flash.fullscreen_height", &panel_size)) {
+		if (conf_get_int("flash.fullscreen_height", &panel_size))
 			gtk_paned_set_position(GTK_PANED(main_panels), panel_size);
-		}
 	} else {
-		if (conf_get_int("flash.windowed_height", &panel_size)) {
+		if (conf_get_int("flash.windowed_height", &panel_size))
 			gtk_paned_set_position(GTK_PANED(main_panels), panel_size);
-		}
 	}
 
 	// после установки, дабы предотвратить ранний вызов обновления
@@ -97,6 +98,7 @@ create_main_window(void)
 void fullscreen_toggle()
 {
 	int panel_size = -1;
+
 	if (!window_fullscreen) {
 		window_fullscreen = true;
 
@@ -131,9 +133,6 @@ void fullscreen_toggle()
 			}
 		}
 	}
-
-	// Обновляем кишки флеша
-	tz_flash_resize();
 }
 
 void
@@ -155,7 +154,7 @@ update_position_config()
 	conf_set_int("window.width", width);
 	conf_set_int("window.height", height);
 	vlog("Position saved: top = %i, left = %i, width = %i, height = %i;",
-			top, left, width, height);
+	     top, left, width, height);
 }
 /* }}} */
 
@@ -163,14 +162,15 @@ update_position_config()
 bool event_cb(GtkWidget *w, GdkEvent *e, gpointer p)
 {
 	switch (e->type) {
-		case GDK_CONFIGURE:
-			if (!window_fullscreen) {
-				update_position_config();
-			}
-			return false;
+	case GDK_CONFIGURE:
+		if (!window_fullscreen) {
+			update_position_config();
+		}
 
-		default:
-			return false;
+		return false;
+
+	default:
+		return false;
 	}
 }
 
@@ -183,52 +183,54 @@ bool keypress_cb(GtkWidget *w, GdkEventKey *e, gpointer p)
 	}*/
 	if (e->state & GDK_MOD1_MASK) {
 		switch (e->keyval) {
-			case GDK_1:
-				chat_set_tab(1);
-				return true;
+		case GDK_1:
+			chat_set_tab(1);
+			return true;
 
-			case GDK_2:
-				chat_set_tab(2);
-				return true;
+		case GDK_2:
+			chat_set_tab(2);
+			return true;
 
-			case GDK_3:
-				chat_set_tab(3);
-				return true;
+		case GDK_3:
+			chat_set_tab(3);
+			return true;
 
-			case GDK_4:
-				chat_set_tab(4);
-				return true;
+		case GDK_4:
+			chat_set_tab(4);
+			return true;
 
-			case GDK_5:
-				chat_set_tab(5);
-				return true;
+		case GDK_5:
+			chat_set_tab(5);
+			return true;
 
-			default:
-				return false;
+		default:
+			return false;
 		}
 	} else {
 		switch (e->keyval) {
-			case GDK_F11:
-				fullscreen_toggle();
-				return true;
+		case GDK_F11:
+			fullscreen_toggle();
+			return true;
 
-			case GDK_F5:
-				tab_refresh();
-				return true;
+		case GDK_F5:
+			tab_refresh();
+			return true;
 
-			case GDK_F12:
-				return true;
+		case GDK_F12:
+			return true;
 
-			default:
-				return false;
+		default:
+			return false;
 		}
 	}
 }
 
 static int old_size = 0;
+
 void flash_resize_cb(GtkContainer *c, gpointer p)
 {
 	int cur_size = gtk_paned_get_position(GTK_PANED(main_panels));
+
 	if (cur_size != 0 && old_size != cur_size) {
 		old_size = cur_size;
 		vlog("Send signal to flash -> update_size");

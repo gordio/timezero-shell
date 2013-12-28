@@ -16,28 +16,30 @@ tag_time_cb(GtkTextTag *tag, GObject *o, GdkEvent *e, GtkTextIter *i, gpointer p
 	GtkTextIter *i_start, *i_end;
 
 	switch (e->type) {
-		case GDK_BUTTON_PRESS:
-			i_start = gtk_text_iter_copy(i);
-			if (gtk_text_iter_begins_tag(i_start, tag) == 0) {
-				gtk_text_iter_backward_to_tag_toggle(i_start, tag);
-			}
+	case GDK_BUTTON_PRESS:
+		i_start = gtk_text_iter_copy(i);
 
-			i_end = gtk_text_iter_copy(i);
-			gtk_text_iter_forward_line(i_end);
-			// remove ended char if this no last line
-			if (gtk_text_iter_get_char(i_end) != 0) {
-				gtk_text_iter_backward_char(i_end);
-			}
+		if (gtk_text_iter_begins_tag(i_start, tag) == 0) {
+			gtk_text_iter_backward_to_tag_toggle(i_start, tag);
+		}
 
-			insert_to_entry(gtk_text_iter_get_text(i_start, i_end));
+		i_end = gtk_text_iter_copy(i);
+		gtk_text_iter_forward_line(i_end);
 
-			gtk_text_iter_free(i_start);
-			gtk_text_iter_free(i_end);
+		// remove ended char if this no last line
+		if (gtk_text_iter_get_char(i_end) != 0) {
+			gtk_text_iter_backward_char(i_end);
+		}
 
-			return true;
+		insert_to_entry(gtk_text_iter_get_text(i_start, i_end));
 
-		default:
-			return false;
+		gtk_text_iter_free(i_start);
+		gtk_text_iter_free(i_end);
+
+		return true;
+
+	default:
+		return false;
 	}
 }
 
@@ -49,49 +51,53 @@ tag_nick_cb(GtkTextTag *tag, GObject *o, GdkEventButton *e, GtkTextIter *i, gpoi
 	const char *nick;
 
 	switch (e->type) {
-		case GDK_2BUTTON_PRESS:
-			i_start = gtk_text_iter_copy(i);
-			if (gtk_text_iter_begins_tag(i_start, tag) == 0) {
-				gtk_text_iter_backward_to_tag_toggle(i_start, tag);
-			}
+	case GDK_2BUTTON_PRESS:
+		i_start = gtk_text_iter_copy(i);
 
-			i_end = gtk_text_iter_copy(i);
-			if (gtk_text_iter_ends_tag(i_end, tag) == 0) {
-				gtk_text_iter_forward_to_tag_toggle(i_end, tag);
-			}
+		if (gtk_text_iter_begins_tag(i_start, tag) == 0) {
+			gtk_text_iter_backward_to_tag_toggle(i_start, tag);
+		}
 
-			insert_nick_to_entry(gtk_text_iter_get_text(i_start, i_end), true);
+		i_end = gtk_text_iter_copy(i);
 
-			gtk_text_iter_free(i_start);
-			gtk_text_iter_free(i_end);
-			return true;
+		if (gtk_text_iter_ends_tag(i_end, tag) == 0) {
+			gtk_text_iter_forward_to_tag_toggle(i_end, tag);
+		}
 
-		case GDK_BUTTON_PRESS:
-			i_start = gtk_text_iter_copy(i);
-			if (gtk_text_iter_begins_tag(i_start, tag) == 0) {
-				gtk_text_iter_backward_to_tag_toggle(i_start, tag);
-			}
+		insert_nick_to_entry(gtk_text_iter_get_text(i_start, i_end), true);
 
-			i_end = gtk_text_iter_copy(i);
-			if (gtk_text_iter_ends_tag(i_end, tag) == 0) {
-				gtk_text_iter_forward_to_tag_toggle(i_end, tag);
-			}
+		gtk_text_iter_free(i_start);
+		gtk_text_iter_free(i_end);
+		return true;
 
-			nick = gtk_text_iter_get_text(i_start, i_end);
+	case GDK_BUTTON_PRESS:
+		i_start = gtk_text_iter_copy(i);
 
-			if (e->button == 3) {
-				tz_info_open(nick);
-			} else {
-				insert_nick_to_entry(nick, false);
-			}
+		if (gtk_text_iter_begins_tag(i_start, tag) == 0) {
+			gtk_text_iter_backward_to_tag_toggle(i_start, tag);
+		}
 
-			gtk_text_iter_free(i_start);
-			gtk_text_iter_free(i_end);
+		i_end = gtk_text_iter_copy(i);
 
-			return true;
+		if (gtk_text_iter_ends_tag(i_end, tag) == 0) {
+			gtk_text_iter_forward_to_tag_toggle(i_end, tag);
+		}
 
-		default:
-			return false;
+		nick = gtk_text_iter_get_text(i_start, i_end);
+
+		if (e->button == 3) {
+			tz_info_open(nick);
+		} else {
+			insert_nick_to_entry(nick, false);
+		}
+
+		gtk_text_iter_free(i_start);
+		gtk_text_iter_free(i_end);
+
+		return true;
+
+	default:
+		return false;
 	}
 }
 
@@ -105,12 +111,14 @@ chat_text_view_event_cb(GtkWidget *w, GdkEventMotion *event, GSList *tags)
 	gint x, y, buf_x, buf_y;
 
 	type = gtk_text_view_get_window_type(GTK_TEXT_VIEW(w), event->window);
+
 	if (type != GTK_TEXT_WINDOW_TEXT) {
 		return false;
 	}
 
 	/* Get where the pointer really is. */
 	win = gtk_text_view_get_window(GTK_TEXT_VIEW(w), type);
+
 	if (!win) {
 		return false;
 	}
@@ -127,6 +135,7 @@ chat_text_view_event_cb(GtkWidget *w, GdkEventMotion *event, GSList *tags)
 
 	for (unsigned int i = 0; i < g_slist_length(tags); ++i) {
 		tag = g_slist_nth_data(tags, i);
+
 		if (gtk_text_iter_has_tag(&iter, GTK_TEXT_TAG(tag))) {
 			this_tag = true;
 			break;
@@ -137,6 +146,7 @@ chat_text_view_event_cb(GtkWidget *w, GdkEventMotion *event, GSList *tags)
 		if (cur_hand == NULL) {
 			cur_hand = gdk_cursor_new(GDK_HAND2);
 		}
+
 		gdk_window_set_cursor(win, cur_hand);
 	} else {
 		gdk_window_set_cursor(win, NULL);
@@ -167,6 +177,7 @@ set_cursor_hand_cb(GtkWidget *w, GdkEvent *e, gpointer user_data)
 	if (cur_hand == NULL) {
 		cur_hand = gdk_cursor_new(GDK_HAND2);
 	}
+
 	/*gdk_window_set_cursor(w->window, cur_hand);*/
 	gdk_window_set_cursor(gtk_widget_get_window(w), cur_hand);
 }

@@ -29,8 +29,13 @@ void tz_battle_show(const unsigned int *id);
 // Присоединится к бою
 void tz_battle_join(const int side, const unsigned int id, const int blood);
 
-// отправить сигнал необходимости пересчета размера внутриностей флешки
+// Отправить сигнал о необходимости пересчета размера внутриностей флешки
 void tz_flash_resize(void);
+
+
+// Автоматический вход в игру
+void tz_autoauth(char* login, char* password);
+
 // отправить сигнал выхода
 void tz_logout(void);
 

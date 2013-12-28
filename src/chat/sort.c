@@ -30,14 +30,18 @@ room_array_qsort_by_level(player_t list[], int beg, int end)
 		key = list[beg];
 		i = beg + 1;
 		j = end;
+
 		while (i <= j) {
 			while ((i <= end) && (list[i].level <= key.level))
 				i++;
+
 			while ((j >= beg) && (list[j].level > key.level))
 				j--;
+
 			if (i < j)
 				tzplayer_swap(&list[i], &list[j]);
 		}
+
 		// swap two elebegeendts
 		tzplayer_swap(&list[beg], &list[j]);
 		// recursively sort the lesser list

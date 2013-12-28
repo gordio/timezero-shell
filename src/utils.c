@@ -24,8 +24,7 @@ struct _img_cache *img_cache_rank = NULL;
 
 
 static struct _img_cache*
-image_in_cache(struct _img_cache *list, char *img_path)
-{
+image_in_cache(struct _img_cache *list, char *img_path) {
 	struct _img_cache *item = list;
 
 	// перебираем каждый элемент от начала
@@ -34,6 +33,7 @@ image_in_cache(struct _img_cache *list, char *img_path)
 			// есть в списке
 			return item;
 		}
+
 		// делаем текущим следующий элемент
 		item = item->next;
 	}
@@ -92,6 +92,7 @@ char *
 escape_str(char *data)
 {
 	char *str; // Валидная UTF8 строка
+
 	if (g_utf8_validate(data, -1, NULL)) {
 		str = data;
 	} else {
@@ -108,15 +109,18 @@ escape_str(char *data)
 
 	// копируем строку, будет как начало
 	memcpy(new_str, str, str_len);
+
 	for (int i = 0; i < g_utf8_strlen(str, -1); ++i) {
 		cur_str_pos = strlen(str) - strlen(p);
 		c = g_utf8_get_char(p);
+
 		if (c == '"' || c == '\\') {
 			// добавляем к результирующей строке символ экранирования
 			memcpy(new_str + cur_str_pos + escaped_len, ESCAPE_CHAR, strlen(ESCAPE_CHAR));
 			// запоминаем размер добавленных символов экранирования
 			escaped_len = escaped_len + strlen(ESCAPE_CHAR);
 		}
+
 		// добавляем к результирующей строке оставшийся кусок
 		memcpy(new_str + cur_str_pos + escaped_len, p, str_len+1 - cur_str_pos);
 		p = g_utf8_next_char(p);
@@ -147,6 +151,7 @@ al_list_widget_create(login_t *player)
 	} else {
 		w = get_image(img_cache_clan, "img/clans/nil.gif");
 	}
+
 	gtk_box_pack_start(GTK_BOX(nick_box), w, false, false, 1);
 
 	// LOGIN
@@ -162,6 +167,7 @@ al_list_widget_create(login_t *player)
 	} else {
 		w = gtk_image_new_from_file("img/rank/nil.gif");
 	}
+
 	gtk_box_pack_end(GTK_BOX(nick_box), w, false, false, 0);
 
 	// PROFESSION
@@ -172,6 +178,7 @@ al_list_widget_create(login_t *player)
 	} else {
 		w = get_image(img_cache_profession, "img/nil.gif");
 	}
+
 	gtk_box_pack_end(GTK_BOX(nick_box), w, false, false, 0);
 
 	// LEVEL
@@ -181,6 +188,7 @@ al_list_widget_create(login_t *player)
 	} else {
 		w = gtk_label_new("[-]");
 	}
+
 	gtk_box_pack_end(GTK_BOX(nick_box), w, false, false, 1);
 
 	free(tmp_mem);
@@ -237,21 +245,25 @@ list_nickbox_create(player_t *p)
 
 	// Status
 	t = g_strconcat("img/status", n, ".png", NULL);
+
 	if (!g_file_test(t, G_FILE_TEST_EXISTS)) {
 		free(t);
 		strcpy(n, "0");
 		t = g_strconcat("img/status", n, ".png", NULL);
 	}
+
 	if (g_file_test(t, G_FILE_TEST_EXISTS)) {
 		image = gtk_image_new_from_file(t);
 		gtk_box_pack_start(GTK_BOX(nick_box), image, false, false, 0);
 	}
+
 	free(t);
 	free(n);
 
 	// Clan
 	if (p->clan) {
 		snprintf(tmp_mem, MEM_TMP-1, "i/clans/%s.gif", p->clan);
+
 		if (g_file_test(tmp_mem, G_FILE_TEST_EXISTS)) {
 			image = get_image(img_cache_clan, tmp_mem);
 		} else {
@@ -262,17 +274,20 @@ list_nickbox_create(player_t *p)
 	} else {
 		image = get_image(img_cache_clan, "img/clans/nil.gif");
 	}
+
 	gtk_widget_set_tooltip_text(GTK_WIDGET(image), p->clan);
 	gtk_box_pack_start(GTK_BOX(nick_box), image, false, false, 2);
 
 
 	// NICKNAME
 	label = gtk_label_new(p->nick);
+
 	if (!online) {
 		GdkColor color;
 		gdk_color_parse("#808080", &color);
 		gtk_widget_modify_fg(label, GTK_STATE_NORMAL, &color);
 	}
+
 	g_signal_connect(G_OBJECT(label), "button-press-event", G_CALLBACK(nick_label_cb), NULL);
 	gtk_box_pack_start(GTK_BOX(nick_box), label, false, false, 0);
 
@@ -300,6 +315,7 @@ list_nickbox_create(player_t *p)
 	} else {
 		snprintf(tmp_mem, MEM_TMP-1, "i/i%i.gif", prof);
 	}
+
 	image = get_image(img_cache_profession, tmp_mem);
 	gtk_container_add(GTK_CONTAINER(event_box), image);
 
@@ -350,15 +366,16 @@ gtk_button_add_image(GtkButton *button, char *image_path)
 int
 get_rank_num_from_ranks(const int rank_count)
 {
-	int rank[] = {20, 60, 120, 250, 600, 1100, 1800, 2500, 3200, 4000, 5000, 6000, 7200, 10000, 15000};
+#define MAX_RANK_COUNT 15
+	int rank[MAX_RANK_COUNT] = {20, 60, 120, 250, 600, 1100, 1800, 2500, 3200, 4000, 5000, 6000, 7200, 10000, 15000};
 
-	for (unsigned int i = 0; i < countof(rank); i++) {
+	for (unsigned int i = 0; i < MAX_RANK_COUNT; i++) {
 		if (rank_count < rank[i]) {
 			return i + 1;
 		}
 	}
 
-	return countof(rank) + 1;
+	return MAX_RANK_COUNT + 1;
 }
 
 /* STRINGS {{{ */
@@ -381,6 +398,7 @@ rem_substr(char *str, const char const *substr)
 {
 	unsigned int substr_len = strlen(substr);
 	char *dst = strstr(str, substr);
+
 	// не нашли подстроку в строке, возвращаемся, ничо не делаем
 	if (dst == 0) {
 		return;
@@ -391,6 +409,7 @@ rem_substr(char *str, const char const *substr)
 
 	// ищем конец str
 	char *end = beg;
+
 	while (*end) end++;
 
 	// короткий путь, если beg == end, т.е. подстрока находится в конце
@@ -455,6 +474,7 @@ replace(const char *str, const char const *old, const char const *new)
 		for (count = 0, p = str; (q = strstr(p, old)) != NULL; p = q + oldlen) {
 			count++;
 		}
+
 		/* undefined if p - str > PTRDIFF_MAX */
 		retlen = p - str + strlen(p) + count * (newlen - oldlen);
 	} else {
@@ -471,6 +491,7 @@ replace(const char *str, const char const *old, const char const *new)
 		memcpy(r, new, newlen);
 		r += newlen;
 	}
+
 	strcpy(r, p);
 
 	return ret;
@@ -500,6 +521,7 @@ rep_substr(const char *str, const char *old, const char *new)
 			ret[i++] = *str++;
 		}
 	}
+
 	ret[i] = '\0';
 
 	return ret;

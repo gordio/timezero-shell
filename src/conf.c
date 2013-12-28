@@ -14,6 +14,7 @@ Conf CONF_DEF[] = {
 	{"window.left", "-1", NULL},
 	{"window.width", "1004", NULL},
 	{"window.height", "650", NULL},
+	{"window.chat_split", "650", NULL},
 	{"flash.fullscreen_height", "600", NULL},
 	{"flash.windowed_height", "200", NULL},
 };
@@ -43,8 +44,9 @@ conf_init(void)
 			cur = cur->next;
 		}
 	}
+
 	cur->next = NULL;
-	
+
 	conf_load();
 
 	return true;
@@ -61,6 +63,7 @@ conf_get(const char const *name, char **value)
 			vlog("get: %s = %s", name, cur->value);
 			return true;
 		}
+
 		cur = cur->next;
 	}
 
@@ -100,6 +103,7 @@ conf_set(const char const *name, const char *value)
 			vlog("set: %s = %s", cur->name, cur->value);
 			return true;
 		}
+
 		cur = cur->next;
 	}
 
@@ -142,6 +146,7 @@ conf_save()
 
 	while (cur) {
 		def_value = false;
+
 		// перебираем все дефолтные значения
 		for (unsigned int i = 0; i < conf_def_length; i++) {
 			if (strcmp(cur->name, CONF_DEF[i].name) == 0) {

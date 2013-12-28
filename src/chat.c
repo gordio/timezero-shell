@@ -2,7 +2,6 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <webkit/webkit.h>
-// TODO: #include <gtkspell-2.0/gtkspell/gtkspell.h>
 #include "general.h"
 #include "autologin.h"
 #include "window.h"
@@ -12,12 +11,13 @@
 #include "events.h"
 #include "chat/sort.h"
 
+#define MSG_VIEWS_COUNT 5 // Don't touch!
 
 GtkWidget *button_scan, *button_smiles, *button_cmd, *button_config, *button_exit, *button_translit;
 GtkEntry *msg_entry;
 GtkWidget *room_list, *tab_bar;
 
-GtkWidget *msg_view[5];
+GtkWidget *msg_view[MSG_VIEWS_COUNT];
 bool tab_enabled[5] = {true, true, true, true, true};
 
 GtkWidget *room_box;
@@ -79,8 +79,8 @@ static char *system_message_fmt[] = {
 player_t Room_player[MAX_ROOM_NICKS];
 GtkWidget *Room_widget[MAX_ROOM_NICKS];
 
-// Кеш хешей сообщений
-static unsigned long MSG_CACHE[1024];
+// msg_hashes_cache
+static unsigned long MSG_HASHES_CACHE[MAX_MSG_HASHES_CACHE];
 
 
 bool send_text();
@@ -120,7 +120,6 @@ create_chat_frame()
 	gtk_box_pack_start(GTK_BOX(main_box), text_box, true, true, 0);
 
 	tab_bar = gtk_notebook_new();
-	/*gtk_widget_set_size_request(GTK_WIDGET(msgView), 400, -1);*/
 	gtk_notebook_set_show_border(GTK_NOTEBOOK(tab_bar), true);
 
 
@@ -131,7 +130,7 @@ create_chat_frame()
 	gtk_paned_pack1(GTK_PANED(text_box), GTK_WIDGET(tab_bar), true, false);
 
 
-	for (unsigned int i = 0; i < countof(msg_view); i++) {
+	for (unsigned int i = 0; i < MSG_VIEWS_COUNT; i++) {
 		view = chat_msg_view_new();
 
 		scroll = gtk_scrolled_window_new(NULL, NULL);
@@ -139,29 +138,29 @@ create_chat_frame()
 		gtk_container_add(GTK_CONTAINER(scroll), view);
 
 		switch (i) {
-			case GENERAL:
-				label = gtk_label_new(_("General"));
-				break;
+		case GENERAL:
+			label = gtk_label_new(_("General"));
+			break;
 
-			case PRIVATE:
-				label = gtk_label_new(_("Private"));
-				break;
+		case PRIVATE:
+			label = gtk_label_new(_("Private"));
+			break;
 
-			case CLAN:
-				label = gtk_label_new(_("Clan"));
-				break;
+		case CLAN:
+			label = gtk_label_new(_("Clan"));
+			break;
 
-			case ALLIANCE:
-				label = gtk_label_new(_("Alliance"));
-				break;
+		case ALLIANCE:
+			label = gtk_label_new(_("Alliance"));
+			break;
 
-			case RADIO:
-				label = gtk_label_new(_("Radio"));
-				break;
+		case RADIO:
+			label = gtk_label_new(_("Radio"));
+			break;
 
-			default:
-				label = gtk_label_new("undef");
-				break;
+		default:
+			label = gtk_label_new("undef");
+			break;
 		}
 
 		gtk_notebook_append_page(GTK_NOTEBOOK(tab_bar), scroll, label);
@@ -356,11 +355,11 @@ void
 chat_tab_enable(int number, const bool enable)
 {
 	// check before set
-	#ifndef gtk_widget_sensitive
-	#define gtk_widget_sensitive(w, s) if (gtk_widget_is_sensitive(w) != s) { \
+#ifndef gtk_widget_sensitive
+#define gtk_widget_sensitive(w, s) if (gtk_widget_is_sensitive(w) != s) { \
 		gtk_widget_set_sensitive(w, s); \
 	}
-	#endif
+#endif
 
 	GtkWidget *page;
 	GtkWidget *label;
@@ -381,22 +380,28 @@ chat_set_tab(int index)
 
 	// игнорируем, если вкладка disabled
 	switch (index) {
-		case CLAN:
-			if (!clan) {
-				return;
-			}
-			break;
-		case ALLIANCE:
-			if (!alliance) {
-				return;
-			}
-			break;
-		case RADIO:
-			if (!radio) {
-				return;
-			}
-			break;
+	case CLAN:
+		if (!clan) {
+			return;
+		}
+
+		break;
+
+	case ALLIANCE:
+		if (!alliance) {
+			return;
+		}
+
+		break;
+
+	case RADIO:
+		if (!radio) {
+			return;
+		}
+
+		break;
 	}
+
 	gtk_notebook_set_current_page(GTK_NOTEBOOK(tab_bar), index);
 }
 int
@@ -413,7 +418,7 @@ room_widget_redraw(void)
 	gtk_widget_hide(room_box);
 
 	// Уничтожаем все старые виджеты
-	for (unsigned int i = 0; i < countof(Room_widget); i++) {
+	for (unsigned int i = 0; i < MAX_ROOM_NICKS; i++) {
 		if (Room_widget[i]) {
 			gtk_widget_destroy(Room_widget[i]);
 			Room_widget[i] = NULL;
@@ -428,9 +433,9 @@ room_widget_redraw(void)
 	room_array_sort_by_level_by_rank(Room_player);
 
 	// create widget player box
-	for (int i = countof(Room_player)-1; i >= 0; --i) {
+	for (int i = MAX_ROOM_NICKS - 1; i >= 0; --i) {
 		if (Room_player[i].nick) {
-			for (unsigned int j = 0; j < countof(Room_widget); j++) {
+			for (unsigned int j = 0; j < MAX_ROOM_NICKS; j++) {
 				if (!Room_widget[j]) {
 					Room_widget[j] = list_nickbox_create(&Room_player[i]);
 					gtk_box_pack_start(GTK_BOX(room_box), Room_widget[j], false, false, 1);
@@ -454,7 +459,7 @@ static player_t *
 get_player_or_exist(char *nick)
 {
 	// находим элемент с таким же ником
-	for (unsigned int i = 0; i < countof(Room_player); ++i) {
+	for (unsigned int i = 0; i < MAX_ROOM_NICKS; ++i) {
 		if (Room_player[i].nick) {
 			if (strcmp(nick, Room_player[i].nick) == 0) {
 				return &Room_player[i];
@@ -463,7 +468,7 @@ get_player_or_exist(char *nick)
 	}
 
 	// находим неиспользованный виджет
-	for (unsigned int i = 0; i < countof(Room_player); i++) {
+	for (unsigned int i = 0; i < MAX_ROOM_NICKS; i++) {
 		if (!Room_player[i].nick) {
 			return &Room_player[i];
 		}
@@ -499,12 +504,13 @@ tz_list_add(const char const *data, bool disable_refresh)
 	if (!p->nick) {
 		p->nick = malloc(1024);
 	}
+
 	if (!p->clan) {
 		p->clan = malloc(1024);
 	}
 
 	if (8 == sscanf(data, "A,%llu/%d/%u//%[^/]/%d/%d/%d/%d",
-				&p->battleid, &p->group, &p->state, p->nick, &p->level, &p->rank, &p->minlevel, &p->aggr)) {
+	                &p->battleid, &p->group, &p->state, p->nick, &p->level, &p->rank, &p->minlevel, &p->aggr)) {
 		free(p->clan);
 		p->clan = NULL;
 	} else if (9 == sscanf(data, "A,%llu/%d/%u/%[^/]/%[^/]/%d/%d/%d/%d", &p->battleid, &p->group, &p->state, p->clan, p->nick, &p->level, &p->rank, &p->minlevel, &p->aggr)) {
@@ -530,12 +536,13 @@ tz_list_remove(const char const *data)
 	char *nick = g_strdup(data + 2);
 
 	// find and remove from players buf
-	for (unsigned int i = 0; i < countof(Room_player); i++) {
+	for (unsigned int i = 0; i < MAX_ROOM_NICKS; i++) {
 		if (Room_player[i].nick) {
 			if (strcmp(nick, Room_player[i].nick) == 0) {
 				vlog("ok, find: %s and remove.", Room_player[i].nick);
 				free(Room_player[i].nick);
 				Room_player[i].nick = NULL;
+
 				if (Room_player[i].clan) {
 					free(Room_player[i].clan);
 					Room_player[i].clan = NULL;
@@ -550,10 +557,11 @@ tz_list_remove(const char const *data)
 static void
 clear_room_players_buffer()
 {
-	for (unsigned int i = 0; i < countof(Room_player); i++) {
+	for (unsigned int i = 0; i < MAX_ROOM_NICKS; i++) {
 		if (Room_player[i].nick) {
 			free(Room_player[i].nick);
 			Room_player[i].nick = NULL;
+
 			if (Room_player[i].clan) {
 				free(Room_player[i].clan);
 				Room_player[i].clan = NULL;
@@ -603,12 +611,14 @@ tz_list_refresh(const char const *data)
 
 		g_free(cmd);
 	}
+
 	g_free(text);
 	g_free(loc_text);
 	g_free(room_name_p);
 	g_free(room_building);
 
 	room_widget_redraw();
+
 	if (!in_building) {
 		gtk_widget_hide(room_label_building);
 	}
@@ -641,9 +651,9 @@ send_text(const char *text)
 	// TODO: Create translit function
 	//char *msg;
 	//if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button_translit)) == 1) {
-		//msg = str_translit(strdup(text));
+	//msg = str_translit(strdup(text));
 	//} else {
-		//msg = strdup(text);
+	//msg = strdup(text);
 	//}
 	tz_chat_send(text);
 	//g_free(msg);
@@ -760,8 +770,8 @@ parse_and_add_system_message(const char *data)
 	}
 
 	// Проверяем не повтор ли
-	for (unsigned int i = 0; i < countof(MSG_CACHE); i++) {
-		if (MSG_CACHE[i] == ID) {
+	for (unsigned int i = 0; i < MAX_MSG_HASHES_CACHE; i++) {
+		if (MSG_HASHES_CACHE[i] == ID) {
 			vlog("Message exist in cache. Ignored.");
 			return false;
 		}
@@ -773,12 +783,14 @@ parse_and_add_system_message(const char *data)
 	bool autoscroll = false;
 	GtkWidget *scroll = gtk_widget_get_parent(view);
 	GtkAdjustment *a = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll));
+
 	if (adjustment_is_bottom(a)) {
 		autoscroll = true;
 	}
 
 	// Show message in text view
 	gtk_text_buffer_get_end_iter(buffer, &iter);
+
 	if (gtk_text_buffer_get_char_count(buffer) != 0) {
 		// это не первое сообщение, вставляем перевод на новую строку
 		gtk_text_buffer_insert(buffer, &iter, "\n", -1);
@@ -821,17 +833,19 @@ parse_and_add_message(const char *data)
 
 
 	vlog("Start parse input message");
+
 	if (5 != sscanf(data, "S,%lx:%d:%d [%[^]]] %[^\n]", &ID, &H, &M, nick, text)) {
 		elog(_("Can't parse SEND command: '%s'\n"), data);
 		return false;
 	}
+
 	if (1 != sscanf(text, "%[^\t]\t%*d", message)) {
 		elog(_("Can't split message: '%s'"), text);
 	}
 
 	// Check messages cache
-	for (unsigned int i = 0; i < countof(MSG_CACHE); i++) {
-		if (MSG_CACHE[i] == ID) {
+	for (unsigned int i = 0; i < MAX_MSG_HASHES_CACHE; i++) {
+		if (MSG_HASHES_CACHE[i] == ID) {
 			vlog("Message '%lx' exist in cache. Don't add", ID);
 			return false;
 		}
@@ -883,15 +897,16 @@ parse_and_add_message(const char *data)
 	}
 
 	// add hash to message cache
-	for (unsigned int i = 0; i < countof(MSG_CACHE); i++) {
-		if (MSG_CACHE[i] == 0) {
-			if (i < countof(MSG_CACHE)) {
-				MSG_CACHE[i] = ID;
-				MSG_CACHE[i+1] = 0;
+	for (unsigned int i = 0; i < MAX_MSG_HASHES_CACHE; i++) {
+		if (MSG_HASHES_CACHE[i] == 0) {
+			if (i < MAX_MSG_HASHES_CACHE) {
+				MSG_HASHES_CACHE[i] = ID;
+				MSG_HASHES_CACHE[i+1] = 0;
 			} else {
-				MSG_CACHE[i] = ID;
-				MSG_CACHE[0] = 0;
+				MSG_HASHES_CACHE[i] = ID;
+				MSG_HASHES_CACHE[0] = 0;
 			}
+
 			break;
 		}
 	}
@@ -902,11 +917,13 @@ parse_and_add_message(const char *data)
 
 	// find max nick white spaces
 	int nick_len = g_utf8_strlen(nick, -1);
+
 	if (MAX_NICK_SIZE > nick_len) {
 		nick_spaces = MAX_NICK_SIZE - nick_len;
 	}
 
 	vlog("Insert message to chat");
+
 	if (gtk_text_buffer_get_char_count(buffer) != 0) {
 		gtk_text_buffer_insert(buffer, &iter, "\n", -1);
 	}
@@ -918,6 +935,7 @@ parse_and_add_message(const char *data)
 	bool autoscroll = false;
 	GtkWidget *scroll = gtk_widget_get_parent(view);
 	GtkAdjustment *a = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(scroll));
+
 	if (adjustment_is_bottom(a)) {
 		// FIXME: Проблема с скролом при изменении размеров окна
 		autoscroll = true;
@@ -928,7 +946,7 @@ parse_and_add_message(const char *data)
 	sprintf(time, "%.2i:%.2i ", H, M);
 
 	gtk_text_buffer_insert_with_tags_by_name(buffer, &iter, time, -1, "time", if_highlight_tag, NULL);
-	
+
 	// Никнейм
 	char *tmp_str = malloc(nick_spaces);
 	memset(tmp_str, ' ', nick_spaces);
@@ -957,11 +975,11 @@ void
 setChatState(int state)
 {
 	// check before set
-	#ifndef gtk_widget_sensitive
-	#define gtk_widget_sensitive(w, s) if (gtk_widget_is_sensitive(w) != s) { \
+#ifndef gtk_widget_sensitive
+#define gtk_widget_sensitive(w, s) if (gtk_widget_is_sensitive(w) != s) { \
 		gtk_widget_set_sensitive(w, s); \
 	}
-	#endif
+#endif
 
 	if (state == CHAT_FULL_OFF) {
 		gtk_widget_sensitive(GTK_WIDGET(msg_entry), false);
@@ -969,6 +987,7 @@ setChatState(int state)
 		gtk_widget_sensitive(button_smiles, false);
 		gtk_widget_sensitive(button_translit, false);
 	}
+
 	if (state == CHAT_ON) {
 		chatOn = true;
 		// TODO: Don't implemented
@@ -1013,6 +1032,7 @@ update_cmd(const char *cmd_str)
 			if (last_cmd_str) {
 				free(last_cmd_str);
 			}
+
 			last_cmd_str = strdup(cmd_str);
 		} else {
 			// одинаковые командные строки
@@ -1024,10 +1044,25 @@ update_cmd(const char *cmd_str)
 	}
 
 	// сбрасываем значения
-	trade = false; snow = false; coin = false; flower = false; flower2 = false;
-	flower3 = false; venom = false; love = false; love2 = false; love3 = false;
-	dirt = false; clan = false; alliance = false; radio = false; list = false;
-	kiss = false; kiss2 = false; kiss3 = false; battle = false;
+	trade = false;
+	snow = false;
+	coin = false;
+	flower = false;
+	flower2 = false;
+	flower3 = false;
+	venom = false;
+	love = false;
+	love2 = false;
+	love3 = false;
+	dirt = false;
+	clan = false;
+	alliance = false;
+	radio = false;
+	list = false;
+	kiss = false;
+	kiss2 = false;
+	kiss3 = false;
+	battle = false;
 
 
 	char *tmp = strdup(cmd_str);
@@ -1078,9 +1113,10 @@ update_cmd(const char *cmd_str)
 		} else {
 			wlog(_("Not supported command: '%s'"), pch);
 		}
-		
+
 		pch = strtok(NULL, ",");
 	}
+
 	g_free(tmp);
 
 	update_cmd_menu();
@@ -1091,9 +1127,9 @@ update_cmd_menu(void)
 {
 	GtkWidget *menu_item;
 
-	if (cmd_menu) {
+	if (cmd_menu)
 		gtk_widget_destroy(cmd_menu);
-	}
+
 	cmd_menu = gtk_menu_new();
 	gtk_menu_set_reserve_toggle_size(GTK_MENU(cmd_menu), false);
 	gtk_menu_set_title(GTK_MENU(cmd_menu), "CMD");
@@ -1231,26 +1267,29 @@ activate_msg_entry_cb(GtkWidget *w)
 	int cur_tab_indx = gtk_notebook_get_current_page(GTK_NOTEBOOK(tab_bar));
 
 	switch (cur_tab_indx) {
-		case CLAN:
-			if (!strstr(text, "private [clan]")) {
-				msg = g_strconcat("private [clan] ", text, NULL);
-			}
-			break;
+	case CLAN:
+		if (!strstr(text, "private [clan]")) {
+			msg = g_strconcat("private [clan] ", text, NULL);
+		}
 
-		case ALLIANCE:
-			if (!strstr(text, "private [alliance]")) {
-				msg = g_strconcat("private [alliance] ", text, NULL);
-			}
-			break;
+		break;
 
-		case RADIO:
-			if (!strstr(text, "private [radio]")) {
-				msg = g_strconcat("private [radio] ", text, NULL);
-			}
-			break;
+	case ALLIANCE:
+		if (!strstr(text, "private [alliance]")) {
+			msg = g_strconcat("private [alliance] ", text, NULL);
+		}
 
-		default:
-			break;
+		break;
+
+	case RADIO:
+		if (!strstr(text, "private [radio]")) {
+			msg = g_strconcat("private [radio] ", text, NULL);
+		}
+
+		break;
+
+	default:
+		break;
 	}
 
 	send_text(msg ? msg : text);
@@ -1262,6 +1301,7 @@ activate_msg_entry_cb(GtkWidget *w)
 	if (msg) {
 		free(msg);
 	}
+
 	return false;
 }
 

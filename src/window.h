@@ -4,6 +4,10 @@
 #include <gtk/gtk.h>
 
 
+#define MIN_WINDOW_WIDTH 1004
+#define MIN_WINDOW_HEIGHT 540
+
+
 extern GtkWindow *window;
 extern GtkWidget *main_panels;
 extern GtkWidget *flash_panel;

@@ -17,7 +17,7 @@
 const char *tz_client_dir;
 
 bool verbose = false, fullscreen = false, no_theme = false, al_print = false;
-char *default_autologin;
+char *autoauth_login;
 
 char *tz_file_path = NULL;
 
@@ -36,6 +36,7 @@ int main(int argc, char **argv, char *envp[])
 
 	// Находим домашнюю директорию
 	const char *home_dir = g_getenv("HOME");
+
 	if (!home_dir) {
 		home_dir = g_get_home_dir();
 	}
@@ -57,7 +58,14 @@ int main(int argc, char **argv, char *envp[])
 	}
 
 	if (al_print) {
-		al_list_print();
+		login_t *al_list = al_list_get_array();
+
+		for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
+			if (al_list[i].login) {
+				printf("%s\n", al_list[i].login);
+			}
+		}
+
 		return 0;
 	}
 
@@ -70,6 +78,7 @@ int main(int argc, char **argv, char *envp[])
 
 	// Если в TZ директории нет tz.swf - это ошибка
 	tz_file_path = g_strconcat(tz_client_dir, "tz.swf", NULL);
+
 	if (!g_file_test(tz_file_path, G_FILE_TEST_EXISTS)) {
 		elog(_("File Don't exist: %s"), tz_file_path);
 		return -2;
@@ -116,14 +125,17 @@ initArgs(const int argc, char *argv[])
 			fullscreen = true;
 			continue;
 		}
+
 		if (strcmp(argv[i], "--al-list") == 0 || strcmp(argv[i], "-ll") == 0) {
 			al_print = true;
 			continue;
 		}
+
 		if (strcmp(argv[i], "--al-login") == 0 || strcmp(argv[i], "-l") == 0) {
 			i++;
+
 			if (i < argc) {
-				default_autologin = g_strdup(argv[i]);
+				autoauth_login = g_strdup(argv[i]);
 				continue;
 			} else {
 				wlog("Option '%s' usage: %s %s \"User Nick\"\n", argv[i-1], argv[0], argv[i-1]);
@@ -131,8 +143,10 @@ initArgs(const int argc, char *argv[])
 				continue;
 			}
 		}
+
 		if (strcmp(argv[i], "--client-dir") == 0 || strcmp(argv[i], "-cd") == 0) {
 			i++;
+
 			if (i < argc) {
 				tz_client_dir = argv[i];
 				continue;
@@ -142,6 +156,7 @@ initArgs(const int argc, char *argv[])
 				continue;
 			}
 		}
+
 		if (strcmp(argv[i], "--no-theme") == 0 || strcmp(argv[i], "-nt") == 0) {
 			no_theme = true;
 			continue;
@@ -151,6 +166,7 @@ initArgs(const int argc, char *argv[])
 			printf(PRINT_VERSION);
 			return false;
 		}
+
 		if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-V") == 0) {
 			verbose = true;
 			continue;

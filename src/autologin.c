@@ -115,16 +115,12 @@ al_list_update_by_player(player_t *p)
 	return false;
 }
 
-void
-al_list_print(void)
+login_t *
+al_list_get_array(void)
 {
 	al_list_load();
 
-	for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
-		if (al_list[i].login) {
-			printf("%s\n", al_list[i].login);
-		}
-	}
+	return (login_t*) &al_list;
 }
 
 
@@ -132,6 +128,30 @@ al_list_print(void)
 void
 al_window_create(void)
 {
+	al_list_load();
+
+	// Auth on start
+	if (autoauth_login) {
+		for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS && al_list[i].login; i++) {
+			// create both strings lovercase
+			char *login = g_utf8_strdown(al_list[i].login, -1);
+			char *nick = g_utf8_strdown(autoauth_login, -1);
+
+			if (strcmp(login, nick) == 0) {
+				ilog("Activate autologin item: %s", al_list[i].login);
+				al_item_activate(&al_list[i]);
+
+				free(login);
+				free(nick);
+
+				return;
+			} else {
+				free(login);
+				free(nick);
+			}
+		}
+	}
+
 	vlog("Create autologin window.");
 
 	GtkWidget *widget;
@@ -183,8 +203,6 @@ al_window_create(void)
 	gtk_box_pack_end(al_buttons_box, widget, false, false, 0);
 
 
-	al_list_load();
-
 	// autologin buttons
 	for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS; ++i) {
 		if (al_list[i].login) {
@@ -206,29 +224,6 @@ al_window_create(void)
 	al_window_move();
 
 	g_signal_connect(G_OBJECT(window), "event", G_CALLBACK(&al_move_cb), NULL);
-
-	// Auth on start
-	if (default_autologin) {
-		for (unsigned int i = 0; i < MAX_AUTOLOGIN_ITEMS && al_list[i].login; i++) {
-			// create both strings lovercase
-			char *login = g_utf8_strdown(al_list[i].login, -1);
-			char *nick = g_utf8_strdown(default_autologin, -1);
-
-			if (strcmp(login, nick) == 0) {
-				ilog("Activate autologin item: %s", al_list[i].login);
-				al_item_activate(&al_list[i]);
-				al_window_hide();
-
-				free(login);
-				free(nick);
-
-				return;
-			} else {
-				free(login);
-				free(nick);
-			}
-		}
-	}
 }
 
 static void
